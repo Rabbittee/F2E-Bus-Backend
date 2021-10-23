@@ -1,10 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app.api.routes import queries
+from app.api import router
 
 app = FastAPI()
-app.include_router(queries.router)
+app.include_router(router)
 
 
 def start():
