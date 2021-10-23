@@ -1,9 +1,9 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Station(BaseModel):
     name: str
-    description: Optional[str] = None
-    type: str = "STATION"
+    type: str = Field("STATION", const=True)
     URL: Optional[str] = None
+    distance: int
