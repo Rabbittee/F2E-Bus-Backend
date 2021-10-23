@@ -5,13 +5,11 @@ from . import schemas
 items = [
     {
         "name": "266 承德幹線",
-        "type": "ROUTE",
-        "URL": "/buses/266%20承德幹線/stations"
+        "URL": "/buses/266%20承德幹線/stations",
     },
     {
         "name": "26",
-        "type": "ROUTE",
-        "URL": "/buses/26/stations"
+        "URL": "/buses/26/stations",
     },
 ]
 

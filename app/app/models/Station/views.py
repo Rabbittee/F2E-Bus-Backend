@@ -5,7 +5,8 @@ from . import schemas
 items = [{
     "name": "市政府(市府)",
     "type": "STATION",
-    "URL": "/stations/市政府%28市府%29"
+    "URL": "/stations/市政府%28市府%29",
+    "distance": 130
 }]
 
 
