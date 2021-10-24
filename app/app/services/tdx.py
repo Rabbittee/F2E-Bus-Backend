@@ -1,6 +1,5 @@
 import httpx
 import time
-import asyncio
 
 from wsgiref.handlers import format_date_time
 from hmac import digest
@@ -112,9 +111,3 @@ async def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
     cache.client.set(cache_key, RouteList.to_json(routes))
 
     return routes
-
-
-async def main():
-    print(await get_routes_in(City.Taipei))
-
-asyncio.run(main())
