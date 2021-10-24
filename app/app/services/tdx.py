@@ -5,7 +5,10 @@ from hmac import digest
 from hashlib import sha1
 from base64 import b64encode
 
-from config import settings
+from app.models.Route import Route, RouteList
+from app.models.Constant import City, Lang
+from app.config import settings
+from app.db import cache
 
 HOST = settings.TDX_HOST
 API_ID = settings.TDX_API_ID
@@ -50,3 +53,57 @@ def GET(url: str):
     }
 
     return requests.get(HOST + url, headers=headers)
+
+
+def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
+    cache_key = f"routes:{city.value}:{lang.value}"
+
+    if cache.client.exists(cache_key):
+        return RouteList.parse_raw(cache.client.get(cache_key)).__root__
+
+    res = GET(f"/Bus/Route/City/{city.value}")
+
+    if not res.ok:
+        raise ConnectionError(
+            f"Fetch routes from TDX failed with {res.status_code}")
+
+    routes: list[Route] = []
+
+    lang = str(lang.value)
+    _lang = lang.split('_')[0]
+
+    for item in res.json():
+        id = item["RouteUID"]
+        name = item["RouteName"][lang]
+        departure = item[f"DepartureStopName{_lang}"]
+        destination = item[f"DestinationStopName{_lang}"]
+        price_description = item[f'TicketPriceDescription{_lang}']
+        bus_type = item['BusRouteType']
+        authority = item['AuthorityID']
+        operator_ids = list(
+            map(
+                lambda operator: operator['OperatorID'],
+                item['Operators']
+            )
+        )
+
+        for route in item["SubRoutes"]:
+            direction = route["Direction"]
+
+            routes.append(
+                Route(**{
+                    'id': id,
+                    'name': name,
+                    'type': bus_type,
+                    'direction': direction,
+                    'departure': departure if direction else destination,
+                    'destination': destination if direction else departure,
+                    'price_description': price_description,
+                    'authority_id': authority,
+                    'operator_ids': operator_ids
+                })
+            )
+
+    cache.client.set(cache_key, RouteList.parse_obj(routes).json())
+
+    return routes
