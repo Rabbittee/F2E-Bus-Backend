@@ -3,7 +3,11 @@ from typing import List, Optional
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from app.models import Route, Station
+try:
+    from app.models import Route, Station
+except ImportError as error:
+    print(error)
+    from models import Route, Station
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
