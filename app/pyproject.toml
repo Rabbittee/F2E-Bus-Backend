@@ -8,11 +8,11 @@ authors = ["Your Name <you@example.com>"]
 python = "^3.8"
 fastapi = "^0.70.0"
 uvicorn = "^0.15.0"
-requests = "^2.26.0"
 python-dotenv = "^0.19.1"
 pydantic = "^1.8.2"
-redis = "^3.5.3"
 hiredis = "^2.0.0"
+httpx = "^0.20.0"
+aioredis = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 

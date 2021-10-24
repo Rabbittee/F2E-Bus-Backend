@@ -1,5 +1,7 @@
-import requests
+import httpx
 import time
+import asyncio
+
 from wsgiref.handlers import format_date_time
 from hmac import digest
 from hashlib import sha1
@@ -41,7 +43,7 @@ def hmac(username: str, signature: str):
     )
 
 
-def GET(url: str):
+async def GET(url: str):
     current_time = format_date_time(time.time())
 
     headers = {
@@ -52,16 +54,19 @@ def GET(url: str):
         'x-date': current_time,
     }
 
-    return requests.get(HOST + url, headers=headers)
+    async with httpx.AsyncClient() as client:
+        return await client.get(HOST + url, headers=headers)
 
 
-def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
+async def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
     cache_key = f"routes:{city.value}:{lang.value}"
 
-    if cache.client.exists(cache_key):
-        return RouteList.parse_raw(cache.client.get(cache_key)).__root__
+    if await cache.client.exists(cache_key):
+        data = await cache.client.get(cache_key)
 
-    res = GET(f"/Bus/Route/City/{city.value}")
+        return RouteList.from_json(data)
+
+    res = await GET(f"/Bus/Route/City/{city.value}")
 
     if not res.ok:
         raise ConnectionError(
@@ -104,6 +109,12 @@ def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
                 })
             )
 
-    cache.client.set(cache_key, RouteList.parse_obj(routes).json())
+    cache.client.set(cache_key, RouteList.to_json(routes))
 
     return routes
+
+
+async def main():
+    print(await get_routes_in(City.Taipei))
+
+asyncio.run(main())
