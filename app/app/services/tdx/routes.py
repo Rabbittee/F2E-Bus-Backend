@@ -1,7 +1,7 @@
 from .network import GET
-from app.models.Route import Route, RouteList
+from app.models.Route import Route
 from app.models.Constant import City, Lang
-
+from app.models.Base import List
 from app.db import cacheByStr
 
 
@@ -12,13 +12,7 @@ def _keygen(city: City, lang: Lang = Lang.ZH_TW):
 async def _get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
     res = await GET(f"/Bus/Route/City/{city.value}")
 
-    if res.status_code != 200:
-        raise ConnectionError(
-            f"Fetch routes from TDX failed with {res.status_code}")
-
-    return RouteList(
-        __root__=_transform(res.json(), lang)
-    ).json()
+    return List(__root__=_transform(res.json(), lang)).json()
 
 
 def _transform(data: dict, lang: Lang) -> list[Route]:
@@ -63,7 +57,7 @@ def _transform(data: dict, lang: Lang) -> list[Route]:
 
 
 async def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
-    return RouteList.from_json(
+    return List.from_json(
         await cacheByStr(
             _keygen,
             _get_routes_in
