@@ -9,7 +9,7 @@ router = APIRouter(prefix="/queries", tags=["query"])
 
 
 class MatchItem(BaseModel):
-    routes: Route.RouteList
+    routes: List[Route.Route]
     stations: List[Station.Station]
 
 

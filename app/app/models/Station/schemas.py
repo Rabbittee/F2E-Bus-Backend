@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 from ..Geo import GeoLocation
 
@@ -8,7 +8,7 @@ class Station(BaseModel):
     name: str
     address: str
     position: GeoLocation
-    routeIDs: list[str]
+    routeIDs: List[str]
 
     type: str = Field("STATION", const=True)
     URL: Optional[str] = None
