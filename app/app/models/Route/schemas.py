@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from app.models.Constant import Direction, BusType
 
@@ -12,14 +12,14 @@ class Route(BaseModel):
     destination: str
     price_description: str
     authority_id: str
-    operator_ids: list[str]
+    operator_ids: List[str]
 
     URL: Optional[str] = None
     nearby_station: Optional[str] = None
 
 
 class RouteList(BaseModel):
-    __root__: list[Route]
+    __root__: List[Route]
 
     def from_json(data: str):
         return RouteList.parse_raw(data)

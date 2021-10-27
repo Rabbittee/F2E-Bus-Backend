@@ -1,18 +1,11 @@
 from typing import List
 
+from app.services import tdx
+from app.models.Constant import City
 from . import schemas
 
-items = [
-    {
-        "name": "266 承德幹線",
-        "URL": "/buses/266%20承德幹線/stations",
-    },
-    {
-        "name": "26",
-        "URL": "/buses/26/stations",
-    },
-]
 
+async def find(q: str) -> List[schemas.Route]:
 
-def find(q: str) -> List[schemas.Route]:
-    return [item for item in items if q in item['name']]
+    routes = await tdx.get_routes_in(City.Taipei)
+    return [route for route in routes if q in route['name']]

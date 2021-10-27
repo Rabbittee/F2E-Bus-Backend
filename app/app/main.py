@@ -2,11 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-try:
-    from api import router
-except ImportError as error:
-    print(error)
-    from app.api import router
+from app.api import router
 
 origins = ["*"]
 
