@@ -52,4 +52,10 @@ async def GET(url: str):
     }
 
     async with httpx.AsyncClient() as client:
-        return await client.get(HOST + url, headers=headers)
+        res = await client.get(HOST + url, headers=headers)
+
+        if res.status_code != 200:
+            raise ConnectionError(
+                f"GET {url} from TDX failed with {res.status_code}")
+
+        return res

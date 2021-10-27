@@ -16,10 +16,3 @@ class Route(BaseModel):
 
     URL: Optional[str] = None
     nearby_station: Optional[str] = None
-
-
-class RouteList(BaseModel):
-    __root__: List[Route]
-
-    def from_json(data: str):
-        return RouteList.parse_raw(data)
