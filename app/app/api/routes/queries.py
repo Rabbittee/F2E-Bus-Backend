@@ -3,11 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-try:
-    from app.models import Route, Station
-except ImportError as error:
-    print(error)
-    from models import Route, Station
+from app.models import Route, Station
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
@@ -29,7 +25,7 @@ async def query(
         return match_items
 
     if q is not None:
-        match_items["routes"] = Route.find(q)
+        match_items["routes"] = await Route.find(q)
         match_items["stations"] = Station.find(q)
 
     # if geo location
