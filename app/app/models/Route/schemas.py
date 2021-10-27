@@ -22,7 +22,4 @@ class RouteList(BaseModel):
     __root__: list[Route]
 
     def from_json(data: str):
-        return RouteList.parse_raw(data).__root__
-
-    def to_json(routes: list[Route]):
-        return RouteList.parse_obj(routes).json()
+        return RouteList.parse_raw(data)
