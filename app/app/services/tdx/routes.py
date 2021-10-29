@@ -1,21 +1,15 @@
 from typing import List
-import json
 
 from .network import GET
 from app.models.Route import Route
 from app.models.Constant import City, Lang
 from app.models.Base import List
-from app.db import cacheByStr
 
 
-def _keygen(city: City, lang: Lang = Lang.ZH_TW):
-    return f"routes:{city.value}:{lang.value}"
-
-
-async def _get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
+async def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
     res = await GET(f"/Bus/Route/City/{city.value}")
 
-    return List(__root__=_transform(res.json(), lang)).json()
+    return _transform(res.json(), lang)
 
 
 def _transform(data: dict, lang: Lang) -> List[Route]:
@@ -53,7 +47,3 @@ def _transform(data: dict, lang: Lang) -> List[Route]:
                     }))
 
     return routes
-
-
-async def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
-    return json.loads(await cacheByStr(_keygen, _get_routes_in)(city, lang))

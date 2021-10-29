@@ -25,7 +25,7 @@ async def query(
         return match_items
 
     if q is not None:
-        match_items["routes"] = await Route.find(q)
+        match_items["routes"] = await Route.search_by_name(q)
         match_items["stations"] = Station.find(q)
 
     # if geo location
