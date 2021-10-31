@@ -111,4 +111,5 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
         )
 
 
-# async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
+async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
+    pass
