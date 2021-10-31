@@ -2,17 +2,17 @@ from typing import List
 from itertools import chain
 
 from .network import GET
-from app.models.Route import Route, SubRoute
+from app.models.Route import RouteModel, SubRoute
 from app.models.Constant import City, Lang
 
 
-async def get_routes_in(city: City) -> List[Route]:
+async def get_routes_in(city: City) -> List[RouteModel]:
     res = await GET(f"/Bus/Route/City/{city.value}")
 
     return transform(res.json())
 
 
-def _transform(item: dict, lang: Lang) -> Route:
+def _transform(item: dict, lang: Lang) -> RouteModel:
     _lang = lang.value.split('_')[0]
 
     def _transform_subroute(item: dict, authority_id: str) -> SubRoute:
@@ -36,7 +36,7 @@ def _transform(item: dict, lang: Lang) -> Route:
             holiday_last_bus_time=item['HolidayLastBusTime']
         )
 
-    return Route(
+    return RouteModel(
         id=item["RouteUID"],
         name=item["RouteName"][lang.value],
         type=int(item['BusRouteType']),
@@ -59,7 +59,7 @@ def _transform(item: dict, lang: Lang) -> Route:
     )
 
 
-def transform(data: List[dict]) -> List[Route]:
+def transform(data: List[dict]) -> List[RouteModel]:
     return list(
         chain.from_iterable(
             (

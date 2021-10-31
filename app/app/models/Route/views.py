@@ -136,7 +136,7 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
                 await _select_sub_route_by_id(pipe, id)
             )
 
-        return Route(
+        return RouteModel(
             id=dict['id'],
             name=dict['name'],
             type=BusType(int(dict['type'])),
