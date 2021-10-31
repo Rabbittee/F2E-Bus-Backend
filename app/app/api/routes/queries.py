@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from app.models import Station, Route
 from app.models.Route import mock as routeMock
+from app.models.Station import mock as stationMock
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
@@ -27,13 +28,13 @@ async def query(
 
     if q is not None:
         match_items["routes"] = await routeMock.search_by_name(q)
-        match_items["stations"] = Station.find(q)
+        match_items["stations"] = await stationMock.search_by_name(q)
 
     # ToDo
     # if geo location
     # > 站牌:距離排序
     # > 路線:顯示最近站牌，下班車
 
-    print(match_items["routes"])
+    print(match_items["stations"][0])
 
     return match_items

@@ -36,14 +36,20 @@ class SingleTonRoutes:
         self.routes = merge(routes)
 
 
-async def init():
-    return await get_routes_in(city.City.Taipei)
-
-
 async def search_by_name(name: str) -> Route.RouteModel:
     data = SingleTonRoutes()
     if not data.routes:
         await data.get_routes()
     match_routes = [route for route in data.routes if name in route.name]
+    for route in match_routes:
+        route.URL = f'/api/routes/{route.name}/stops'
 
     return match_routes
+
+
+async def search_by_id(id: str) -> Route.RouteModel:
+    data = SingleTonRoutes()
+    if not data.routes:
+        await data.get_routes()
+
+    return [route for route in data.routes if id == route.id]

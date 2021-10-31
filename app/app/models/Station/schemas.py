@@ -9,7 +9,7 @@ class StationModel(BaseModel):
     address: str
     position: GeoLocation
     routeIDs: List[str]
+    routes_name: Optional[List[str]] = None
 
-    type: str = Field("STATION", const=True)
     URL: Optional[str] = None
-    distance: int
+    distance: Optional[int] = None
