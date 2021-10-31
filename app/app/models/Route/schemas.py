@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.models.Constant import Direction, BusType
 
 
-class Route(BaseModel):
+class RouteModel(BaseModel):
     id: str
     name: str
     type: BusType

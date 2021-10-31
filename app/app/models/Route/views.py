@@ -1,43 +1,40 @@
 from asyncio import gather
+
 from app.db.cache import connection
 from app.models.Constant import BusType, Direction
-
-from . import Route
+from .schemas import RouteModel
 
 
 class KEY:
     MAPPING_NAME_ID = f"routes:name->id"
 
 
-async def add_one(route: Route):
+async def add_one(route: RouteModel):
     client = await connection()
 
     async with client.pipeline() as pipe:
         key = f"route:{route.id}"
 
-        await (
-            pipe
-            .hset(key, mapping={
-                "id": route.id,
-                "name": route.name,
-                "type": route.type.value,
-                "direction": route.direction.value,
-                "departure": route.departure,
-                "destination": route.destination,
-                "price_description": route.price_description,
-                "authority_id": route.authority_id,
-            })
-            .sadd(f"{key}:operator_ids", *route.operator_ids)
-            .sadd(f"routes:id", route.id)
-            .hset(f"routes:name->id", route.name, route.id)
-            .execute()
-        )
+        await (pipe.hset(key,
+                         mapping={
+                             "id": route.id,
+                             "name": route.name,
+                             "type": route.type.value,
+                             "direction": route.direction.value,
+                             "departure": route.departure,
+                             "destination": route.destination,
+                             "price_description": route.price_description,
+                             "authority_id": route.authority_id,
+                         }).sadd(f"{key}:operator_ids",
+                                 *route.operator_ids).sadd(
+                                     f"routes:id",
+                                     route.id).hset(f"routes:name->id",
+                                                    route.name,
+                                                    route.id).execute())
 
 
-async def add(*routes: Route):
-    await gather(*[
-        add_one(route) for route in routes
-    ])
+async def add(*routes: RouteModel):
+    await gather(*[add_one(route) for route in routes])
 
 
 async def is_exist(**kwargs):
@@ -63,23 +60,21 @@ async def select_by_id(id: str):
 
     async with client.pipeline() as pipe:
         dict, operator_ids = await (
-            pipe
-            .hgetall(key)
-            .smembers(f"{key}:operator_ids")
-            .execute()
-        )
+            pipe.hgetall(key).smembers(f"{key}:operator_ids").execute())
 
-        return Route(**{
-            "id": dict['id'],
-            "name": dict['name'],
-            "type": BusType(int(dict['type'])),
-            "direction": Direction(int(dict['direction'])),
-            "departure": dict['departure'],
-            "destination": dict['destination'],
-            "price_description": dict['price_description'],
-            "authority_id": dict['authority_id'],
-            "operator_ids": operator_ids
-        })
+        return RouteModel(
+            **{
+                "id": dict['id'],
+                "name": dict['name'],
+                "type": BusType(int(dict['type'])),
+                "direction": Direction(int(dict['direction'])),
+                "departure": dict['departure'],
+                "destination": dict['destination'],
+                "price_description": dict['price_description'],
+                "authority_id": dict['authority_id'],
+                "operator_ids": operator_ids,
+                "URL": f'/api/routes/{dict["name"]}/stops'
+            })
 
 
 async def select_by_name(name: str):

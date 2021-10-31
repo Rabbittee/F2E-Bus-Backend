@@ -3,14 +3,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from app.models import Route, Station
+from app.models import Station, Route
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
 
 class MatchItem(BaseModel):
-    routes: List[Route.Route]
-    stations: List[Station.Station]
+    routes: List[Route.RouteModel]
+    stations: List[Station.StationModel]
 
 
 @router.get("/recommend", response_model=MatchItem)
@@ -28,6 +28,7 @@ async def query(
         match_items["routes"] = await Route.search_by_name(q)
         match_items["stations"] = Station.find(q)
 
+    # ToDo
     # if geo location
     # > 站牌:距離排序
     # > 路線:顯示最近站牌，下班車

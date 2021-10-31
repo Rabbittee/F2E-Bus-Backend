@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from ..Geo import GeoLocation
 
 
-class Station(BaseModel):
+class StationModel(BaseModel):
     id: str
     name: str
     address: str
