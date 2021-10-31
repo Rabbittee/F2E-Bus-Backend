@@ -1,49 +1,70 @@
 from typing import List
+from itertools import chain
 
 from .network import GET
-from app.models.Route import Route
+from app.models.Route import Route, SubRoute
 from app.models.Constant import City, Lang
-from app.models.Base import List
 
 
-async def get_routes_in(city: City, lang: Lang = Lang.ZH_TW):
+async def get_routes_in(city: City) -> List[Route]:
     res = await GET(f"/Bus/Route/City/{city.value}")
 
-    return _transform(res.json(), lang)
+    return transform(res.json())
 
 
-def _transform(data: dict, lang: Lang) -> List[Route]:
-    routes: List[Route] = []
+def _transform(item: dict, lang: Lang) -> Route:
+    _lang = lang.value.split('_')[0]
 
-    lang = str(lang.value)
-    _lang = lang.split('_')[0]
+    def _transform_subroute(item: dict, authority_id: str) -> SubRoute:
+        _lang = "En" if lang == Lang.EN else ""
 
-    for item in data:
-        id = item["RouteUID"]
-        name = item["RouteName"][lang]
-        departure = item[f"DepartureStopName{_lang}"]
-        destination = item[f"DestinationStopName{_lang}"]
-        price_description = item[f'TicketPriceDescription{_lang}']
-        bus_type = item['BusRouteType']
-        authority = item['AuthorityID']
-        operator_ids = list(
-            map(lambda operator: operator['OperatorID'], item['Operators']))
+        id = authority_id + str(item['SubRouteID']) + str(item['Direction'])
 
-        for route in item["SubRoutes"]:
-            direction = route["Direction"]
+        return SubRoute(
+            id=id,
+            name=item['SubRouteName'][lang.value],
+            headsign=item.get(f'Headsign{_lang}', ''),
+            direction=int(item["Direction"]),
+            lang=lang,
 
-            routes.append(
-                Route(
-                    **{
-                        'id': id,
-                        'name': name,
-                        'type': bus_type,
-                        'direction': direction,
-                        'departure': departure if direction else destination,
-                        'destination': destination if direction else departure,
-                        'price_description': price_description,
-                        'authority_id': authority,
-                        'operator_ids': operator_ids
-                    }))
+            operator_ids=item['OperatorIDs'],
 
-    return routes
+            first_bus_time=item['FirstBusTime'],
+            last_bus_time=item['LastBusTime'],
+
+            holiday_first_bus_time=item['HolidayFirstBusTime'],
+            holiday_last_bus_time=item['HolidayLastBusTime']
+        )
+
+    return Route(
+        id=item["RouteUID"],
+        name=item["RouteName"][lang.value],
+        type=int(item['BusRouteType']),
+        lang=lang,
+
+        sub_routes=[
+            _transform_subroute(sub_route, item['AuthorityID']) for sub_route in item["SubRoutes"]
+        ],
+
+        authority_id=item['AuthorityID'],
+        provider_id=item['ProviderID'],
+        operator_ids=[
+            operator['OperatorID'] for operator in item['Operators']
+        ],
+
+        departure=item[f"DepartureStopName{_lang}"],
+        destination=item[f"DestinationStopName{_lang}"],
+        price_description=item[f'TicketPriceDescription{_lang}'],
+        fare_buffer_zone_description=item[f'FareBufferZoneDescription{_lang}']
+    )
+
+
+def transform(data: List[dict]) -> List[Route]:
+    return list(
+        chain.from_iterable(
+            (
+                _transform(item, Lang.ZH_TW),
+                _transform(item, Lang.EN)
+            ) for item in data
+        )
+    )

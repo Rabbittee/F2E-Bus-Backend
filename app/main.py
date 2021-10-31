@@ -8,9 +8,17 @@ from app.services.tdx import get_routes_in
 async def test_add():
     routes = await get_routes_in(City.Taipei)
 
-    print(len(routes))
+    print(
+        "routes: ",
+        len(routes)
+    )
 
-    await add(*routes)
+    print(
+        "sub_routes: ",
+        sum([len(route.sub_routes) for route in routes])
+    )
+
+    # await add(*routes)
 
 
 async def test_select_by_id():
@@ -34,9 +42,9 @@ async def test_search_by_name():
 async def main():
     await gather(
         # test_add(),
-        # test_select_by_id(),
+        test_select_by_id(),
         # test_select_by_name(),
-        test_search_by_name()
+        # test_search_by_name()
     )
 
 run(main())
