@@ -1,12 +1,12 @@
-from app.services.tdx import transform
+from app.services.tdx import routes, stations
 from unittest import TestCase
 
 
 class TestTDX(TestCase):
 
-    def test_transform_with_taipei_307(self):
+    def test_transform_routes_with_taipei_307(self):
         self.assertIsNotNone(
-            transform([
+            routes.transform([
                 {
                     "RouteUID": "TPE16111",
                     "RouteID": "16111",
@@ -119,6 +119,87 @@ class TestTDX(TestCase):
                     "RouteMapImageUrl": "https://ebus.gov.taipei/MapOverview?nid=0100030700",
                     "City": "Taipei",
                     "CityCode": "TPE",
+                    "UpdateTime": "2021-10-31T04:07:16+08:00",
+                    "VersionID": 1292
+                }
+            ])
+        )
+
+    def test_transform_stations_with_TPE10(self):
+        self.assertIsNotNone(
+            stations.transform([
+                {
+                    "StationUID": "TPE10",
+                    "StationID": "10",
+                    "StationName": {
+                        "Zh_tw": "八勢里"
+                    },
+                    "StationPosition": {
+                        "PositionLon": 121.45952,
+                        "PositionLat": 25.15123,
+                        "GeoHash": "wsqr5fshe"
+                    },
+                    "StationAddress": "中正東路二段107號(向北)",
+                    "Stops": [
+                        {
+                            "StopUID": "TPE56147",
+                            "StopID": "56147",
+                            "StopName": {
+                                "Zh_tw": "八勢里",
+                                "En": "Bashi Li"
+                            },
+                            "RouteUID": "TPE15151",
+                            "RouteID": "15151",
+                            "RouteName": {
+                                "Zh_tw": "308",
+                                "En": "308"
+                            }
+                        },
+                        {
+                            "StopUID": "TPE129931",
+                            "StopID": "129931",
+                            "StopName": {
+                                "Zh_tw": "八勢里",
+                                "En": "Bashi Village"
+                            },
+                            "RouteUID": "TPE16504",
+                            "RouteID": "16504",
+                            "RouteName": {
+                                "Zh_tw": "756",
+                                "En": "756"
+                            }
+                        },
+                        {
+                            "StopUID": "TPE151757",
+                            "StopID": "151757",
+                            "StopName": {
+                                "Zh_tw": "八勢里",
+                                "En": "Bashi Li"
+                            },
+                            "RouteUID": "TPE16707",
+                            "RouteID": "16707",
+                            "RouteName": {
+                                "Zh_tw": "757",
+                                "En": "757"
+                            }
+                        },
+                        {
+                            "StopUID": "TPE189101",
+                            "StopID": "189101",
+                            "StopName": {
+                                "Zh_tw": "八勢里",
+                                "En": "Bashi Li"
+                            },
+                            "RouteUID": "TPE17740",
+                            "RouteID": "17740",
+                            "RouteName": {
+                                "Zh_tw": "957",
+                                "En": "957"
+                            }
+                        }
+                    ],
+                    "LocationCityCode": "NWT",
+                    "Bearing": "N",
                     "UpdateTime": "2021-10-31T04:07:16+08:00",
                     "VersionID": 1292
                 }
