@@ -2,10 +2,9 @@ from asyncio import gather
 
 from aioredis.client import Pipeline
 from app.db.cache import connection
-from app.models.Constant import BusType, Direction
-from app.models.Constant.lang import Lang
+from app.models.Constant import BusType, Direction, Lang
 
-from . import Route, SubRoute
+from . import RouteModel, SubRoute
 
 
 class KEY:
@@ -20,7 +19,7 @@ class KEY:
         return f"{lang.value}:sub_route:{id}"
 
 
-async def add_one(route: Route):
+async def add_one(route: RouteModel):
     client = await connection()
 
     def _add_one_sub_route(pipe: Pipeline, sub_route: SubRoute):
@@ -73,10 +72,8 @@ async def add_one(route: Route):
         await pipe.execute()
 
 
-async def add(*routes: Route):
-    await gather(*[
-        add_one(route) for route in routes
-    ])
+async def add(*routes: RouteModel):
+    await gather(*[add_one(route) for route in routes])
 
 
 async def is_exist(**kwargs):

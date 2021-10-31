@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import Dict, Optional, List
 from pydantic import BaseModel
-from app.models.Constant import Direction, BusType, Lang
+from app.models.Constant import Direction, BusType, Lang, DirectionInfo
 
 
 class SubRoute(BaseModel):
@@ -19,7 +19,7 @@ class SubRoute(BaseModel):
     holiday_last_bus_time: str
 
 
-class Route(BaseModel):
+class RouteModel(BaseModel):
     id: str
     name: str
     type: BusType
@@ -27,15 +27,16 @@ class Route(BaseModel):
 
     sub_routes: List[SubRoute]
 
+    departure: str
+    destination: str
+
     authority_id: str
     provider_id: str
     operator_ids: List[str]
 
-    departure: str
-    destination: str
-
     price_description: str  # 票價
     fare_buffer_zone_description: str  # 收費緩衝區
 
+    directions: Optional[Dict[Direction, DirectionInfo]] = None
     URL: Optional[str] = None
     nearby_station: Optional[str] = None
