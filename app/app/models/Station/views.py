@@ -10,5 +10,5 @@ items = [{
 }]
 
 
-def find(q: str) -> List[schemas.Station]:
+def find(q: str) -> List[schemas.StationModel]:
     return [item for item in items if q in item['name']]

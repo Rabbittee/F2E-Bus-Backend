@@ -3,13 +3,13 @@ from pydantic import BaseModel, Field
 from ..Geo import GeoLocation
 
 
-class Station(BaseModel):
+class StationModel(BaseModel):
     id: str
     name: str
     address: str
     position: GeoLocation
     routeIDs: List[str]
+    routes_name: Optional[List[str]] = None
 
-    type: str = Field("STATION", const=True)
     URL: Optional[str] = None
-    distance: int
+    distance: Optional[int] = None
