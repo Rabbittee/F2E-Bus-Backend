@@ -19,8 +19,6 @@ async def get_stop_of_route(city: City, route: str, lang: Lang = Lang.ZH_TW):
     data = res.json()
 
     class StopOfRoute(BaseModel):
-        departure: Optional[str] = None
-        destination: Optional[str] = None
         direction: Direction
         stops: List[Stop.StopModel]
 
