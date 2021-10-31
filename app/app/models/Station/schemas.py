@@ -20,7 +20,7 @@ class StationModel(BaseModel):
     position: GeoLocation
 
     stops: List[Stop]
-    routeIDs: List[str]
+    route_ids: List[str]
 
     routes_name: Optional[List[str]] = None
     URL: Optional[str] = None

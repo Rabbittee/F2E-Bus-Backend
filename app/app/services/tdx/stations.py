@@ -23,12 +23,11 @@ def _transform(item: dict, lang: Lang) -> StationModel:
         address=item["StationAddress"],
 
         position=GeoLocation(
-            hash=item["StationPosition"]["GeoHash"],
             lon=item["StationPosition"]["PositionLon"],
             lat=item["StationPosition"]["PositionLat"]
         ),
 
-        routeIDs=[
+        route_ids=[
             stop["RouteUID"] for stop in item["Stops"]
         ],
 

@@ -24,21 +24,3 @@ async def connection() -> Redis:
     except AuthenticationError:
         print("Authentication failed during connect to Redis.")
         sys.exit(1)
-
-
-def cacheByStr(keygen, fn):
-    async def wrapper(*args, **kwargs):
-        key = keygen(*args, **kwargs)
-
-        client = await Client.instance()
-
-        if await client.exists(key):
-            return await client.get(key)
-
-        data = await fn(*args, **kwargs)
-
-        await client.set(key, data)
-
-        return data
-
-    return wrapper
