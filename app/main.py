@@ -1,42 +1,20 @@
 from asyncio import run
 from asyncio.tasks import gather
 from app.models.Constant.city import City
-from app.models.Route.views import add, select_by_id, select_by_name, search_by_name
-from app.services.tdx import get_routes_in
+from app.models.Station.views import add, select_by_id
+from app.services.tdx import get_stations_in
 
 
 async def test_add():
-    routes = await get_routes_in(City.Taipei)
+    stations = await get_stations_in(City.Taipei)
 
-    print(
-        "routes: ",
-        len(routes)
-    )
-
-    print(
-        "sub_routes: ",
-        sum([len(route.sub_routes) for route in routes])
-    )
-
-    # await add(*routes)
+    await add(*stations)
 
 
 async def test_select_by_id():
-    r = await select_by_id("TPE11764")
-
-    print(r)
-
-
-async def test_select_by_name():
-    r = await select_by_name("234")
-
-    print(r)
-
-
-async def test_search_by_name():
-    r = await search_by_name("2*")
-
-    print(r)
+    print(
+        await select_by_id("TPE10")
+    )
 
 
 async def main():
