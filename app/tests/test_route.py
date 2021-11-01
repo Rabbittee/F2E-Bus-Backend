@@ -1,16 +1,26 @@
-from app.models.Constant.city import City
-from app.models.Route.views import add, select_by_id, select_by_name, search_by_name
 from app.services.tdx import get_routes_in
+from app.models.Route.views import add, select_by_id, select_by_name, search_by_name
+from app.models.Constant import City
 
 from unittest import IsolatedAsyncioTestCase
 
-# async def test_add():
-#     routes = await get_routes_in(City.Taipei)
-
-#     await add(*routes)
-
 
 class TestRoute(IsolatedAsyncioTestCase):
+
+    async def test_add_with(self):
+        routes = await get_routes_in(City.Taipei)
+
+        print(
+            "routes: ",
+            len(routes)
+        )
+
+        print(
+            "sub_routes: ",
+            sum([len(route.sub_routes) for route in routes])
+        )
+
+        await add(*routes)
 
     async def test_select_by_id_with_exist_id(self):
         r = await select_by_id("TPE11764")
