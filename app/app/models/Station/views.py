@@ -11,9 +11,13 @@ class KEY:
     STATION_GEO = "stations:positions"
 
     MAPPING_ID = "stations:id"
+    MAPPING_NAME_ID = "stations:name->id"
 
     def STATION(id: str, lang: Lang):
         return f"{lang.value}:station:{id}"
+
+    def STATION_ROUTE_IDS(id: str, lang: Lang):
+        return f"{KEY.STATION(id, lang)}:route_ids"
 
     def STOP(id: str, lang: Lang):
         return f"{lang.value}:stop:{id}"
@@ -38,6 +42,8 @@ async def add_one(station: StationModel):
 
             pipe.sadd(f"{key}:stops", stop.id)
 
+        print(station.name)
+
         (
             pipe
             .hset(key, mapping={
@@ -51,8 +57,9 @@ async def add_one(station: StationModel):
                 station.position.lat,
                 station.id
             )
-            .sadd(f"{key}:route_ids", *station.route_ids)
+            .sadd(KEY.STATION_ROUTE_IDS(id, station.lang), *station.route_ids)
             .sadd(KEY.MAPPING_ID, station.id)
+            .hset(KEY.MAPPING_NAME_ID, station.name, station.id)
         )
 
         await pipe.execute()
@@ -63,10 +70,19 @@ async def add(*stations: StationModel):
 
 
 async def is_exist(**kwargs):
-    pass
+    client = await connection()
+
+    for key, value in kwargs.items():
+        if key == "id":
+            return await client.sismember(KEY.MAPPING_ID, value)
+
+    return False
 
 
 async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
+    if not await is_exist(id=id):
+        return
+
     client = await connection()
 
     async def _select_stop_by_id(pipe: Pipeline, id: str):
@@ -86,7 +102,7 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
             pipe
             .hgetall(key)
             .geopos(KEY.STATION_GEO, id)
-            .smembers(f"{key}:route_ids")
+            .smembers(KEY.STATION_ROUTE_IDS(id, lang))
             .smembers(f"{key}:stops")
             .execute()
         )
@@ -112,4 +128,18 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
 
 
 async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
-    pass
+    client = await connection()
+
+    tasks = []
+
+    next = 0
+    while True:
+        (next, dict) = await client.hscan(KEY.MAPPING_NAME_ID, next, name)
+
+        if bool(dict):
+            tasks += [select_by_id(id, lang) for id in dict.values()]
+
+        if next == 0:
+            break
+
+    return await gather(*tasks)

@@ -17,7 +17,7 @@ def _transform(item: dict, lang: Lang) -> StationModel:
 
     return StationModel(
         id=item["StationUID"],
-        name=item["StationName"].get(lang.value, ""),
+        name=item["StationName"][lang.value],
         lang=lang,
 
         address=item["StationAddress"],
@@ -38,14 +38,16 @@ def _transform(item: dict, lang: Lang) -> StationModel:
 
 
 def transform(data: List[dict]) -> List[StationModel]:
-    return list(
-        chain.from_iterable(
-            (
-                _transform(item, Lang.ZH_TW),
-                _transform(item, Lang.EN)
-            ) for item in data
-        )
-    )
+    list = []
+
+    for item in data:
+        if item["StationName"].get(Lang.ZH_TW.value):
+            list.append(_transform(item, Lang.ZH_TW))
+
+        if item["StationName"].get(Lang.EN.value):
+            list.append(_transform(item, Lang.EN))
+
+    return list
 
 
 async def get_stations_in(city: City) -> List[StationModel]:

@@ -8,8 +8,8 @@ from . import RouteModel, SubRoute
 
 
 class KEY:
-    MAPPING_NAME_ID = "routes:name->id"
     MAPPING_ID = "routes:id"
+    MAPPING_NAME_ID = "routes:name->id"
 
     def ROUTE(id: str, lang: Lang):
         return f"{lang.value}:route:{id}"
