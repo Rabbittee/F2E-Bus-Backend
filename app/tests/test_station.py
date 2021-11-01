@@ -20,7 +20,12 @@ class TestStation(IsolatedAsyncioTestCase):
     async def test_is_exist_with_exist_id(self):
         r = await is_exist(id="TPE10")
 
-        self.assertIsNotNone(r)
+        self.assertTrue(r)
+
+    async def test_is_exist_with_not_exist_id(self):
+        r = await is_exist(id="hello")
+
+        self.assertFalse(r)
 
     async def test_select_by_id_with_exist_id(self):
         r = await select_by_id("TPE10")

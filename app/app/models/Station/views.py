@@ -74,7 +74,7 @@ async def is_exist(**kwargs):
 
     for key, value in kwargs.items():
         if key == "id":
-            return await client.sismember(KEY.MAPPING_ID, value)
+            return bool(await client.sismember(KEY.MAPPING_ID, value))
 
     return False
 

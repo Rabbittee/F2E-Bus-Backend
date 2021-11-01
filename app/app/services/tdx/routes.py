@@ -3,7 +3,7 @@ from itertools import chain
 
 from .network import GET
 from app.models.Route import RouteModel, SubRoute
-from app.models.Constant import City, Lang
+from app.models.Constant import City, Lang, city
 
 
 async def get_routes_in(city: City) -> List[RouteModel]:
@@ -41,6 +41,7 @@ def _transform(item: dict, lang: Lang) -> RouteModel:
         name=item["RouteName"][lang.value],
         type=int(item['BusRouteType']),
         lang=lang,
+        city=City(item['City']),
 
         sub_routes=[
             _transform_subroute(sub_route, item['AuthorityID']) for sub_route in item["SubRoutes"]
