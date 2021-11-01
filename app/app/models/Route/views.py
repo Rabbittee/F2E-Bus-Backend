@@ -2,7 +2,7 @@ from asyncio import gather
 
 from aioredis.client import Pipeline
 from app.db.cache import connection
-from app.models.Constant import BusType, Direction, Lang
+from app.models.Constant import BusType, Direction, Lang, City
 
 from . import RouteModel, SubRoute
 
@@ -53,6 +53,7 @@ async def add_one(route: RouteModel):
                 "id": route.id,
                 "name": route.name,
                 "type": route.type.value,
+                "city": route.city.value,
 
                 "authority_id": route.authority_id,
                 "provider_id": route.provider_id,
@@ -140,6 +141,7 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
             name=dict['name'],
             type=BusType(int(dict['type'])),
             lang=lang,
+            city=City(dict['city']),
 
             sub_routes=sub_routes,
 

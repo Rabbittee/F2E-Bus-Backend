@@ -1,6 +1,7 @@
 from typing import Dict, Optional, List
 from pydantic import BaseModel
 from app.models.Constant import Direction, BusType, Lang, DirectionInfo
+from app.models.Constant.city import City
 
 
 class SubRoute(BaseModel):
@@ -24,6 +25,7 @@ class RouteModel(BaseModel):
     name: str
     type: BusType
     lang: Lang
+    city: City
 
     sub_routes: List[SubRoute]
 
