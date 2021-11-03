@@ -1,8 +1,11 @@
 from asyncio import gather
+from typing import List
 
 from aioredis.client import Pipeline
 from app.db.cache import connection
-from app.models.Constant import BusType, Direction, Lang, City
+from app.models.Constant import BusType, Direction, DirectionInfo, Lang, City
+from app.models import Stop
+from app.services.tdx.routes import get_stop_of_route
 
 from . import RouteModel, SubRoute
 
@@ -24,20 +27,19 @@ async def add_one(route: RouteModel):
     def _add_one_sub_route(pipe: Pipeline, sub_route: SubRoute):
         key = KEY.SUB_ROUTE(sub_route.id, sub_route.lang)
 
-        (
-            pipe
-            .hset(key, mapping={
-                'id': sub_route.id,
-                'name': sub_route.name,
-                'headsign': sub_route.headsign,
-                'direction': sub_route.direction.value,
-                'first_bus_time': sub_route.first_bus_time,
-                'last_bus_time': sub_route.last_bus_time,
-                'holiday_first_bus_time': sub_route.holiday_first_bus_time,
-                'holiday_last_bus_time': sub_route.holiday_last_bus_time,
-            })
-            .sadd(f"{key}:operator_ids", *sub_route.operator_ids)
-        )
+        (pipe.hset(key,
+                   mapping={
+                       'id': sub_route.id,
+                       'name': sub_route.name,
+                       'headsign': sub_route.headsign,
+                       'direction': sub_route.direction.value,
+                       'first_bus_time': sub_route.first_bus_time,
+                       'last_bus_time': sub_route.last_bus_time,
+                       'holiday_first_bus_time':
+                       sub_route.holiday_first_bus_time,
+                       'holiday_last_bus_time':
+                       sub_route.holiday_last_bus_time,
+                   }).sadd(f"{key}:operator_ids", *sub_route.operator_ids))
 
     async with client.pipeline() as pipe:
         key = KEY.ROUTE(route.id, route.lang)
@@ -47,27 +49,31 @@ async def add_one(route: RouteModel):
 
             pipe.sadd(f"{key}:sub_routes", sub_route.id)
 
-        (
-            pipe
-            .hset(key, mapping={
-                "id": route.id,
-                "name": route.name,
-                "type": route.type.value,
-                "city": route.city.value,
-
-                "authority_id": route.authority_id,
-                "provider_id": route.provider_id,
-
-                "departure": route.departure,
-                "destination": route.destination,
-
-                "price_description": route.price_description,
-                "fare_buffer_zone_description": route.fare_buffer_zone_description,
-            })
-            .sadd(f"{key}:operator_ids", *route.operator_ids)
-            .sadd(KEY.MAPPING_ID, route.id)
-            .hset(KEY.MAPPING_NAME_ID, route.name, route.id)
-        )
+        (pipe.hset(key,
+                   mapping={
+                       "id":
+                       route.id,
+                       "name":
+                       route.name,
+                       "type":
+                       route.type.value,
+                       "city":
+                       route.city.value,
+                       "authority_id":
+                       route.authority_id,
+                       "provider_id":
+                       route.provider_id,
+                       "departure":
+                       route.departure,
+                       "destination":
+                       route.destination,
+                       "price_description":
+                       route.price_description,
+                       "fare_buffer_zone_description":
+                       route.fare_buffer_zone_description,
+                   }).sadd(f"{key}:operator_ids", *route.operator_ids).sadd(
+                       KEY.MAPPING_ID, route.id).hset(KEY.MAPPING_NAME_ID,
+                                                      route.name, route.id))
 
         await pipe.execute()
 
@@ -101,11 +107,7 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
         key = KEY.SUB_ROUTE(id, lang)
 
         dict, operator_ids = await (
-            pipe
-            .hgetall(key)
-            .smembers(f"{key}:operator_ids")
-            .execute()
-        )
+            pipe.hgetall(key).smembers(f"{key}:operator_ids").execute())
 
         return SubRoute(
             id=dict['id'],
@@ -121,20 +123,13 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
         )
 
     async with client.pipeline() as pipe:
-        dict, operator_ids, sub_routes_ids = await (
-            pipe
-            .hgetall(key)
-            .smembers(f"{key}:operator_ids")
-            .smembers(f"{key}:sub_routes")
-            .execute()
-        )
+        dict, operator_ids, sub_routes_ids = await (pipe.hgetall(key).smembers(
+            f"{key}:operator_ids").smembers(f"{key}:sub_routes").execute())
 
         sub_routes = []
 
         for id in sub_routes_ids:
-            sub_routes.append(
-                await _select_sub_route_by_id(pipe, id)
-            )
+            sub_routes.append(await _select_sub_route_by_id(pipe, id))
 
         return RouteModel(
             id=dict['id'],
@@ -142,18 +137,15 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
             type=BusType(int(dict['type'])),
             lang=lang,
             city=City(dict['city']),
-
             sub_routes=sub_routes,
-
             authority_id=dict['authority_id'],
             provider_id=dict['provider_id'],
             operator_ids=operator_ids,
-
             departure=dict['departure'],
             destination=dict['destination'],
             price_description=dict['price_description'],
-            fare_buffer_zone_description=dict['fare_buffer_zone_description']
-        )
+            fare_buffer_zone_description=dict['fare_buffer_zone_description'],
+            URL=f'/api/routes/{dict["id"]}/stops')
 
 
 async def select_by_name(name: str, lang: Lang = Lang.ZH_TW):
@@ -191,3 +183,37 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
             break
 
     return await gather(*tasks)
+
+
+async def select_stop_of_route(route_id: str,
+                               lang: Lang = Lang.ZH_TW
+                               ) -> List[Stop.StopOfRoute]:
+    route = await select_by_id(route_id)
+    routeStops = await get_stop_of_route(City.Taipei, route.name)
+
+    stopOfRoutes = []
+    for routeStop in routeStops:
+        stops = [{
+            'name': stop['StopName'][lang.value],
+            'id': stop['StopUID'],
+            'position': {
+                'hash': stop['StopPosition']['GeoHash'],
+                'lon': stop['StopPosition']['PositionLon'],
+                'lat': stop['StopPosition']['PositionLat']
+            }
+        } for stop in routeStop['Stops']]
+
+        stopOfRoutes.append(
+            Stop.schemas.StopOfRoute(
+                **{
+                    'route_name':
+                    routeStop['RouteName'][lang.value],
+                    'direction':
+                    DirectionInfo(departure=route.departure,
+                                  destination=route.destination,
+                                  direction=routeStop['Direction']),
+                    'stops':
+                    stops
+                }))
+
+    return stopOfRoutes
