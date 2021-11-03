@@ -1,8 +1,8 @@
 from .network import GET
-from app.models.Constant import City, Lang
-from app.models.Base import List
-from app.models.Station import StationModel, Stop
-from app.models.Geo import GeoLocation
+from models.Constant import City, Lang
+from models.Base import List
+from models.Station import StationModel, Stop
+from models.Geo import GeoLocation
 
 
 def _transform(item: dict, lang: Lang) -> StationModel:

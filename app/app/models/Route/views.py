@@ -2,10 +2,10 @@ from asyncio import gather
 from typing import List
 
 from aioredis.client import Pipeline
-from app.db.cache import connection
-from app.models.Constant import BusType, Direction, DirectionInfo, Lang, City
-from app.models import Stop
-from app.services.tdx.routes import get_stop_of_route
+from db.cache import connection
+from models.Constant import BusType, Direction, DirectionInfo, Lang, City
+from models import Stop
+from services.tdx.routes import get_stop_of_route
 
 from . import RouteModel, SubRoute
 
