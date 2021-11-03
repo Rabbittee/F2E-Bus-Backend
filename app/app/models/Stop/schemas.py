@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Optional
+from app.models.Constant.direction import DirectionInfo
 from pydantic import BaseModel
 
 from ..Geo import GeoLocation

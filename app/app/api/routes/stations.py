@@ -1,14 +1,12 @@
-from typing import List, Optional
-from pydantic import BaseModel
 from fastapi import APIRouter
 
-from app.models.Station import mock as stationMock
+from app.models import Station
 
 router = APIRouter(prefix="/stations", tags=["stations"])
 
 
-@router.get("/{station_name}/infomations", response_model=List)
-async def query(route_name: str):
-    stations = await stationMock.search_by_name(route_name)
+@router.get("/{station_id}/infomations", response_model=Station.StationModel)
+async def query(station_id: str):
+    station = await Station.select_by_id(station_id)
 
-    return stations[0]
+    return station

@@ -1,4 +1,3 @@
-from itertools import chain
 from .network import GET
 from app.models.Constant import City, Lang
 from app.models.Base import List
@@ -7,34 +6,20 @@ from app.models.Geo import GeoLocation
 
 
 def _transform(item: dict, lang: Lang) -> StationModel:
-
     def _transform_stop(item: dict) -> Stop:
-        return Stop(
-            id=item['StopUID'],
-            name=item['StopName'][lang.value],
-            lang=lang
-        )
+        return Stop(id=item['StopUID'],
+                    name=item['StopName'][lang.value],
+                    lang=lang)
 
     return StationModel(
         id=item["StationUID"],
         name=item["StationName"][lang.value],
         lang=lang,
-
         address=item["StationAddress"],
-
-        position=GeoLocation(
-            lon=item["StationPosition"]["PositionLon"],
-            lat=item["StationPosition"]["PositionLat"]
-        ),
-
-        route_ids=[
-            stop["RouteUID"] for stop in item["Stops"]
-        ],
-
-        stops=[
-            _transform_stop(stop) for stop in item["Stops"]
-        ]
-    )
+        position=GeoLocation(lon=item["StationPosition"]["PositionLon"],
+                             lat=item["StationPosition"]["PositionLat"]),
+        route_ids=[stop["RouteUID"] for stop in item["Stops"]],
+        stops=[_transform_stop(stop) for stop in item["Stops"]])
 
 
 def transform(data: List[dict]) -> List[StationModel]:
