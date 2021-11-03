@@ -2,8 +2,8 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 from ..Geo import GeoLocation
-from app.models.Constant import Lang
-# from app.models.Route import RouteModel
+from models.Constant import Lang
+# from models.Route import RouteModel
 
 
 class Stop(BaseModel):

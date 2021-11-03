@@ -1,7 +1,7 @@
 from typing import Optional, List
 from pydantic import BaseModel
-from app.models.Constant import BusType, Lang, Direction
-from app.models.Constant.city import City
+from models.Constant import BusType, Lang, Direction
+from models.Constant.city import City
 
 
 class SubRoute(BaseModel):

@@ -1,11 +1,11 @@
 from typing import List
 from itertools import chain
 
-from app.models.Stop.schemas import StopModel
+from models.Stop.schemas import StopModel
 
 from .network import GET
-from app.models.Route import RouteModel, SubRoute
-from app.models.Constant import City, Lang
+from models.Route import RouteModel, SubRoute
+from models.Constant import City, Lang
 
 
 async def get_routes_in(city: City) -> List[RouteModel]:

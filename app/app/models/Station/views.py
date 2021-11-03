@@ -1,11 +1,11 @@
 from asyncio import gather
 
 from aioredis.client import Pipeline
-from app.db.cache import connection
-from app.models.Constant import Lang
-from app.models.Geo.Location import GeoLocation
-from app.models.Station import StationModel, Stop
-from app.models.Route import select_by_id as route_select_by_id
+from db.cache import connection
+from models.Constant import Lang
+from models.Geo.Location import GeoLocation
+from models.Station import StationModel, Stop
+from models.Route import select_by_id as route_select_by_id
 
 
 class KEY:

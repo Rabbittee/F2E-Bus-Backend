@@ -1,8 +1,8 @@
 from typing import List
 from geojson import LineString
 from .network import GET
-from app.models.Constant import City
-from app.models.Geo.Location import GeoLineString
+from models.Constant import City
+from models.Geo.Location import GeoLineString
 
 
 def get_str_within_parentheses(word: str) -> str:

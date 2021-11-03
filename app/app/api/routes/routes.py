@@ -2,9 +2,9 @@ from typing import List
 
 from fastapi import APIRouter
 
-from app.models.Geo.Location import GeoLineString
-from app.models import Route, Stop
-from app.services.tdx.route_linestring import get_route_line_string
+from models.Geo.Location import GeoLineString
+from models import Route, Stop
+from services.tdx.route_linestring import get_route_line_string
 
 router = APIRouter(prefix="/routes", tags=["routes"])
 
