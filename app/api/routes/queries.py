@@ -3,26 +3,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from models import Station, Route
-
-from services.tdx import get_stations_in
-from models.Station.views import add
-from models.Constant import City
-# from services.tdx import get_routes_in
-# from models.Route.views import add
+from app.models import Station, Route
 
 router = APIRouter(prefix="/queries", tags=["query"])
-
-
-async def test_add_with():
-    stations = await get_stations_in(City.Taipei)
-    print("stations: ", len(stations))
-    await add(*stations)
-
-# routes = await get_routes_in(City.Taipei)
-# print("routes: ", len(routes))
-# print("sub_routes: ", sum([len(route.sub_routes) for route in routes]))
-# await add(*routes)
 
 
 class MatchItem(BaseModel):
@@ -36,8 +19,6 @@ async def query(
     location: Optional[str] = Query(None,
                                     regex="^\d{2}.?\d{0,7},\d{3}.?\d{0,7}$"),
 ):
-
-    await test_add_with()
 
     match_items = {"routes": [], "stations": []}
     if q is None and location is None:

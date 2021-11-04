@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 from geojson.geometry import LineString
 
-from models.Constant import Direction
+from ..Constant import Direction
 
 
 class GeoLocation(BaseModel):

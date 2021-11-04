@@ -1,8 +1,9 @@
+from app.models.Constant import City, Lang
+from app.models.Base import List
+from app.models.Station import StationModel, Stop
+from app.models.Geo import GeoLocation
+
 from .network import GET
-from models.Constant import City, Lang
-from models.Base import List
-from models.Station import StationModel, Stop
-from models.Geo import GeoLocation
 
 
 def _transform(item: dict, lang: Lang) -> StationModel:
@@ -16,10 +17,17 @@ def _transform(item: dict, lang: Lang) -> StationModel:
         name=item["StationName"][lang.value],
         lang=lang,
         address=item["StationAddress"],
-        position=GeoLocation(lon=item["StationPosition"]["PositionLon"],
-                             lat=item["StationPosition"]["PositionLat"]),
-        route_ids=[stop["RouteUID"] for stop in item["Stops"]],
-        stops=[_transform_stop(stop) for stop in item["Stops"]])
+        position=GeoLocation(
+            lon=item["StationPosition"]["PositionLon"],
+            lat=item["StationPosition"]["PositionLat"]
+        ),
+        route_ids=[
+            stop["RouteUID"] for stop in item["Stops"]
+        ],
+        stops=[
+            _transform_stop(stop) for stop in item["Stops"]
+        ]
+    )
 
 
 def transform(data: List[dict]) -> List[StationModel]:
