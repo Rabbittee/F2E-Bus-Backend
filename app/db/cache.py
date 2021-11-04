@@ -1,12 +1,13 @@
-import os
 import sys
 from aioredis import BlockingConnectionPool, Redis, ConnectionError, AuthenticationError
 
-REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost")
+from app.config import REDIS_URL
 
-pool = BlockingConnectionPool.from_url(REDIS_URL,
-                                       decode_responses=True,
-                                       max_connections=10)
+pool = BlockingConnectionPool.from_url(
+    REDIS_URL,
+    decode_responses=True,
+    max_connections=10
+)
 
 
 async def connection() -> Redis:
