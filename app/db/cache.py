@@ -1,10 +1,10 @@
 import sys
 from aioredis import BlockingConnectionPool, Redis, ConnectionError, AuthenticationError
 
-from app.config import REDIS_URL
+from app.config import settings
 
 pool = BlockingConnectionPool.from_url(
-    REDIS_URL,
+    settings.REDIS_URL,
     decode_responses=True,
     max_connections=10
 )
