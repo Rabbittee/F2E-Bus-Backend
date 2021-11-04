@@ -1,6 +1,6 @@
-from services.tdx import get_routes_in
-from models.Route.views import add, select_by_id, select_by_name, search_by_name
-from models.Constant import City
+from app.services.tdx import get_routes_in
+from app.models.Route.views import add, select_by_id, select_by_name, search_by_name
+from app.models.Constant import City
 
 from unittest import IsolatedAsyncioTestCase
 
@@ -36,7 +36,7 @@ class TestRoute(IsolatedAsyncioTestCase):
         self.assertIsNone(r)
 
     async def test_search_by_name_with_explicit_term(self):
-        r = await search_by_name("234")
+        r = await search_by_name("307")
 
         self.assertIsNotNone(r)
 

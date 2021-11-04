@@ -1,5 +1,6 @@
 from geojson.geometry import LineString
-from services.tdx import routes, stations, route_linestring
+from app.services.tdx import routes, stations, route_linestring
+
 from unittest import TestCase
 
 
@@ -7,10 +8,8 @@ class TestTDX(TestCase):
     def test_transform_routes_with_taipei_307(self):
         self.assertIsNotNone(
             routes.transform([{
-                "RouteUID":
-                "TPE16111",
-                "RouteID":
-                "16111",
+                "RouteUID": "TPE16111",
+                "RouteID": "16111",
                 "HasSubRoutes":
                 True,
                 "Operators": [{

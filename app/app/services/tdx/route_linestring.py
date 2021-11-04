@@ -1,8 +1,10 @@
 from typing import List
 from geojson import LineString
+
+from app.models.Constant import City
+from app.models.Geo.Location import GeoLineString
+
 from .network import GET
-from models.Constant import City
-from models.Geo.Location import GeoLineString
 
 
 def get_str_within_parentheses(word: str) -> str:
@@ -19,11 +21,12 @@ def transform(data: str) -> LineString:
                 get_str_within_parentheses(data).split(','))))
 
 
-async def get_route_line_string(city: City,
-                                route_name: str) -> List[GeoLineString]:
+async def get_route_line_string(city: City, route_name: str) -> List[GeoLineString]:
     res = await GET(f"/Bus/Shape/City/{city.value}/{route_name}")
 
     return [
-        GeoLineString(geojson=transform(row.get('Geometry')),
-                      direction=row.get('Direction')) for row in res.json()
+        GeoLineString(
+            geojson=transform(row.get('Geometry')),
+            direction=row.get('Direction')
+        ) for row in res.json()
     ]

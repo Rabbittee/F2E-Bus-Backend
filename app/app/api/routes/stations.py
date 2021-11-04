@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from models import Station
+from app.models import Station
 
 router = APIRouter(prefix="/stations", tags=["stations"])
 

@@ -1,11 +1,11 @@
 from typing import List
 from itertools import chain
 
-from models.Stop.schemas import StopModel
+from app.models.Stop.schemas import StopModel
+from app.models.Route.schemas import RouteModel, SubRoute
+from app.models.Constant import City, Lang
 
 from .network import GET
-from models.Route import RouteModel, SubRoute
-from models.Constant import City, Lang
 
 
 async def get_routes_in(city: City) -> List[RouteModel]:
@@ -22,18 +22,18 @@ def _transform(item: dict, lang: Lang) -> RouteModel:
 
         id = authority_id + str(item['SubRouteID']) + str(item['Direction'])
 
-        return SubRoute(id=id,
-                        name=item['SubRouteName'][lang.value],
-                        headsign=item.get(f'Headsign{_lang}', ''),
-                        direction=int(item["Direction"]),
-                        lang=lang,
-                        operator_ids=item['OperatorIDs'],
-                        first_bus_time=item.get('FirstBusTime', ''),
-                        last_bus_time=item.get('LastBusTime', ''),
-                        holiday_first_bus_time=item.get(
-                            'HolidayFirstBusTime', ''),
-                        holiday_last_bus_time=item.get('HolidayLastBusTime',
-                                                       ''))
+        return SubRoute(
+            id=id,
+            name=item['SubRouteName'][lang.value],
+            headsign=item.get(f'Headsign{_lang}', ''),
+            direction=int(item["Direction"]),
+            lang=lang,
+            operator_ids=item['OperatorIDs'],
+            first_bus_time=item.get('FirstBusTime', ''),
+            last_bus_time=item.get('LastBusTime', ''),
+            holiday_first_bus_time=item.get('HolidayFirstBusTime', ''),
+            holiday_last_bus_time=item.get('HolidayLastBusTime', '')
+        )
 
     return RouteModel(
         id=item["RouteUID"],
@@ -54,14 +54,17 @@ def _transform(item: dict, lang: Lang) -> RouteModel:
         destination=item[f"DestinationStopName{_lang}"],
         price_description=item.get(f'TicketPriceDescription{_lang}', ''),
         fare_buffer_zone_description=item.get(
-            f'FareBufferZoneDescription{_lang}', ''))
+            f'FareBufferZoneDescription{_lang}', '')
+    )
 
 
 def transform(data: List[dict]) -> List[RouteModel]:
     return list(
         chain.from_iterable(
             (_transform(item, Lang.ZH_TW), _transform(item, Lang.EN))
-            for item in data))
+            for item in data
+        )
+    )
 
 
 async def get_stop_of_route(city: City, route_name) -> List[StopModel]:
