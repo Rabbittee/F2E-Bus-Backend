@@ -2,10 +2,10 @@ from app.services.tdx import get_stations_in
 from app.models.Station.views import add, select_by_id, is_exist, search_by_name
 from app.models.Constant import City
 
-from unittest import IsolatedAsyncioTestCase
+import unittest
 
 
-class TestStation(IsolatedAsyncioTestCase):
+class TestStation(unittest.IsolatedAsyncioTestCase):
     async def test_add_with(self):
         stations = await get_stations_in(City.Taipei)
 
@@ -42,3 +42,7 @@ class TestStation(IsolatedAsyncioTestCase):
         r = await search_by_name("")
 
         self.assertFalse(r)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,9 +1,12 @@
 from fastapi import APIRouter
 
-from .routes import queries, routes, stations
+from . import public, private
 
 router = APIRouter(prefix="/api")
 
-router.include_router(queries.router)
-router.include_router(routes.router)
-router.include_router(stations.router)
+router.include_router(public.queries.router)
+router.include_router(public.routes.router)
+router.include_router(public.stations.router)
+
+router.include_router(private.routes.router)
+router.include_router(private.stations.router)
