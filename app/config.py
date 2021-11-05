@@ -1,11 +1,11 @@
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 
 
 class Setting(BaseSettings):
     TDX_HOST: str
     TDX_API_ID: str
     TDX_API_KEY: str
-    REDIS_URL: str
+    REDIS_URL: str = Field(env="REDISCLOUD_URL")
 
     class Config:
         env_file = '.env'

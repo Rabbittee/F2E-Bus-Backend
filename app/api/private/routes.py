@@ -13,7 +13,9 @@ async def add_routes(city: City):
     routes = await get_routes_in(city)
 
     try:
-        await Route.add(*routes)
+        for route in routes:
+            await Route.add_one(route)
+
     except Exception as error:
         print(error)
 
