@@ -12,7 +12,9 @@ async def add_stations(city: City):
     stations = await get_stations_in(city)
 
     try:
-        await Station.add(*stations)
+        for station in stations:
+            await Station.add_one(station)
+
     except Exception as error:
         print(error)
 
