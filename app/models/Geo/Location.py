@@ -13,3 +13,8 @@ class GeoLocation(BaseModel):
 class GeoLineString(BaseModel):
     geojson: LineString
     direction: Optional[Direction] = None
+
+
+def str_to_location(location: str):
+    lat, lon = location.split(',')
+    return GeoLocation(lon=float(lon), lat=float(lat))
