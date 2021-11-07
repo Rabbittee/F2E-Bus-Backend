@@ -1,4 +1,5 @@
 from asyncio import gather
+from typing import List
 from aioredis.client import Pipeline
 
 from app.db.cache import connection
@@ -44,20 +45,29 @@ async def add_one(station: StationModel):
 
             pipe.sadd(f"{key}:stops", stop.id)
 
-        (pipe.hset(key,
-                   mapping={
-                       "id": station.id,
-                       "name": station.name,
-                       "address": station.address,
-                   }).geoadd(KEY.STATION_GEO, station.position.lon,
-                             station.position.lat, station.id).sadd(
-                                 KEY.STATION_ROUTE_IDS(station.id,
-                                                       station.lang),
-                                 *station.route_ids).sadd(
-                                     KEY.MAPPING_ID,
-                                     station.id).hset(KEY.MAPPING_NAME_ID,
-                                                      station.name,
-                                                      station.id))
+        (pipe.hset(
+            key,
+            mapping={
+                "id": station.id,
+                "name": station.name,
+                "address": station.address,
+            }
+        ).geoadd(
+            KEY.STATION_GEO,
+            station.position.lon,
+            station.position.lat,
+            station.id
+        ).sadd(
+            KEY.STATION_ROUTE_IDS(station.id, station.lang),
+            *station.route_ids
+        ).sadd(
+            KEY.MAPPING_ID,
+            station.id
+        ).hset(
+            KEY.MAPPING_NAME_ID,
+            station.name,
+            station.id
+        ))
 
         await pipe.execute()
 
@@ -91,9 +101,18 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
     async with client.pipeline() as pipe:
         key = KEY.STATION(id, lang)
 
-        dict, geo, route_ids, stop_ids = await (pipe.hgetall(key).geopos(
-            KEY.STATION_GEO, id).smembers(KEY.STATION_ROUTE_IDS(
-                id, lang)).smembers(f"{key}:stops").execute())
+        dict, geo, route_ids, stop_ids = await (
+            pipe.hgetall(
+                key
+            ).geopos(
+                KEY.STATION_GEO,
+                id
+            ).smembers(
+                KEY.STATION_ROUTE_IDS(id, lang)
+            ).smembers(
+                f"{key}:stops"
+            ).execute()
+        )
 
         stops = []
         for id in stop_ids:
@@ -103,15 +122,38 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
         for id in route_ids:
             routes.append(await route_select_by_id(id))
 
-        return StationModel(id=dict['id'],
-                            name=dict['name'],
-                            lang=lang,
-                            address=dict['address'],
-                            position=GeoLocation(lon=geo[0][0], lat=geo[0][1]),
-                            route_ids=route_ids,
-                            routes=routes,
-                            stops=stops,
-                            URL=f'/api/stations/{dict["id"]}/infomations')
+        return StationModel(
+            id=dict['id'],
+            name=dict['name'],
+            lang=lang,
+            address=dict['address'],
+            position=GeoLocation(lon=geo[0][0], lat=geo[0][1]),
+            route_ids=route_ids,
+            routes=routes,
+            stops=stops,
+            URL=f'/api/stations/{dict["id"]}/infomations'
+        )
+
+
+async def select_by_ids(ids: str, lang: Lang = Lang.ZH_TW):
+    tasks = [select_by_id(id, lang) for id in ids]
+    stations = await gather(*tasks)
+
+    return stations
+
+
+async def get_route_ids_by_station_id(id: str, lang: Lang = Lang.ZH_TW):
+    client = await connection()
+    return await client.smembers(KEY.STATION_ROUTE_IDS(id, lang))
+
+
+async def get_routes_ids_by_station_ids(ids: List[str], lang: Lang = Lang.ZH_TW):
+    tasks = [get_route_ids_by_station_id(id, lang) for id in ids]
+    routes_ids = await gather(*tasks)
+    out = []
+    for ids in routes_ids:
+        out.extend(ids)
+    return list(set(out))
 
 
 async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
@@ -130,3 +172,22 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
             break
 
     return await gather(*tasks)
+
+
+async def search_by_position(
+    position: GeoLocation,
+    radius: int = 500
+):
+    client = await connection()
+    key = KEY.STATION_GEO
+    unit: str = 'm'
+
+    station_ids = await client.georadius(
+        key,
+        position.lon,
+        position.lat,
+        radius,
+        unit
+    )
+
+    return station_ids

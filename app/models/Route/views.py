@@ -157,6 +157,13 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
         )
 
 
+async def select_by_ids(ids: str, lang: Lang = Lang.ZH_TW):
+    tasks = [select_by_id(id, lang) for id in ids]
+    routes = await gather(*tasks)
+
+    return routes
+
+
 async def select_by_name(name: str, lang: Lang = Lang.ZH_TW):
     client = await connection()
 

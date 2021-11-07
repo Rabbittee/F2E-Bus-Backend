@@ -4,6 +4,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from app.models import Station, Route
+from app.models.Geo.Location import str_to_location
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
@@ -16,20 +17,52 @@ class MatchItem(BaseModel):
 @router.get("/recommend", response_model=MatchItem)
 async def query(
     q: str = None,
-    location: Optional[str] = Query(None,
-                                    regex="^\d{2}.?\d{0,7},\d{3}.?\d{0,7}$"),
+    location_str: Optional[str] = Query(
+        None,
+        regex="^\d{2}.?\d{0,7},\d{3}.?\d{0,7}$"
+    ),
+    radius:  Optional[int] = Query(500, gt=0, le=3000)
 ):
 
+    def _filter_by_id(source, ids):
+        return [
+            s for s in source if s.id in ids
+        ]
+
     match_items = {"routes": [], "stations": []}
-    if q is None and location is None:
+    if q is None and location_str is None:
         return match_items
 
     if q is not None:
         match_items["routes"] = await Route.search_by_name(f'*{q}*')
         match_items["stations"] = await Station.search_by_name(f'*{q}*')
 
-    # ToDo
-    # if geo location
-    # > 站牌:距離排序
-    # > 路線:顯示最近站牌，下班車
+    if location_str:
+        location = str_to_location(location_str)
+        near_by_station_ids = await Station.search_by_position(
+            location,
+            radius
+        )
+        near_by_route_ids = await Station.get_routes_ids_by_station_ids(
+            near_by_station_ids
+        )
+
+        if q is None:
+            match_items["stations"] = await Station.select_by_ids(
+                near_by_station_ids
+            )
+            match_items["routes"] = await Route.select_by_ids(
+                near_by_route_ids
+            )
+        else:
+            match_items["stations"] = _filter_by_id(
+                match_items["stations"],
+                near_by_station_ids
+            )
+
+            match_items["routes"] = _filter_by_id(
+                match_items["routes"],
+                near_by_route_ids
+            )
+
     return match_items
