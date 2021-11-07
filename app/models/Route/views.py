@@ -3,7 +3,7 @@ from typing import List
 from aioredis.client import Pipeline
 
 from app.db.cache import connection
-# from app.services.tdx import get_stop_of_route
+from app.services.tdx import get_stop_of_route
 
 from ..Constant import BusType, Direction, DirectionInfo, Lang, City
 from .. import Stop
@@ -194,32 +194,35 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
     return await gather(*tasks)
 
 
-async def select_stop_of_route(route_id: str, lang: Lang = Lang.ZH_TW) -> List[Stop.StopOfRoute]:
+async def select_stop_of_route(
+    route_id: str,
+    lang: Lang = Lang.ZH_TW
+) -> List[Stop.StopOfRoute]:
     route = await select_by_id(route_id)
-    # routeStops = await get_stop_of_route(City.Taipei, route.name)
+    routeStops = await get_stop_of_route(City.Taipei, route.name)
 
     stopOfRoutes = []
-    # for routeStop in routeStops:
-    #     stops = [{
-    #         'name': stop['StopName'][lang.value],
-    #         'id': stop['StopUID'],
-    #         'position': {
-    #             'hash': stop['StopPosition']['GeoHash'],
-    #             'lon': stop['StopPosition']['PositionLon'],
-    #             'lat': stop['StopPosition']['PositionLat']
-    #         }
-    #     } for stop in routeStop['Stops']]
+    for routeStop in routeStops:
+        stops = [{
+            'name': stop['StopName'][lang.value],
+            'id': stop['StopUID'],
+            'position': {
+                'hash': stop['StopPosition']['GeoHash'],
+                'lon': stop['StopPosition']['PositionLon'],
+                'lat': stop['StopPosition']['PositionLat']
+            }
+        } for stop in routeStop['Stops']]
 
-    #     stopOfRoutes.append(
-    #         Stop.schemas.StopOfRoute(**{
-    #             'route_name': routeStop['RouteName'][lang.value],
-    #             'direction': DirectionInfo(
-    #                 departure=route.departure,
-    #                 destination=route.destination,
-    #                 direction=routeStop['Direction']
-    #             ),
-    #             'stops': stops
-    #         })
-    #     )
+        stopOfRoutes.append(
+            Stop.schemas.StopOfRoute(**{
+                'route_name': routeStop['RouteName'][lang.value],
+                'direction': DirectionInfo(
+                    departure=route.departure,
+                    destination=route.destination,
+                    direction=routeStop['Direction']
+                ),
+                'stops': stops
+            })
+        )
 
     return stopOfRoutes
