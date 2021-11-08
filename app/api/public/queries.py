@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from app.models import Station, Route
 from app.models.Geo.Location import str_to_location
+from app.models.Base import Error
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
@@ -17,11 +18,11 @@ class MatchItem(BaseModel):
 @router.get("/recommend", response_model=MatchItem)
 async def query(
     q: str = None,
-    location_str: Optional[str] = Query(
+    location: Optional[str] = Query(
         None,
         regex="^\d{2}.?\d{0,7},\d{3}.?\d{0,7}$"
     ),
-    radius:  Optional[int] = Query(500, gt=0, le=3000)
+    radius:  Optional[int] = Query(500, ge=0, le=3000)
 ):
 
     def _filter_by_id(source, ids):
@@ -30,17 +31,17 @@ async def query(
         ]
 
     match_items = {"routes": [], "stations": []}
-    if q is None and location_str is None:
-        return match_items
+    if q is None and location is None:
+        raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
 
     if q is not None:
         match_items["routes"] = await Route.search_by_name(f'*{q}*')
         match_items["stations"] = await Station.search_by_name(f'*{q}*')
 
-    if location_str:
-        location = str_to_location(location_str)
+    if location:
+        position = str_to_location(location)
         near_by_station_ids = await Station.search_by_position(
-            location,
+            position,
             radius
         )
         near_by_route_ids = await Station.get_routes_ids_by_station_ids(
