@@ -50,8 +50,8 @@ def _transform(item: dict, lang: Lang) -> RouteModel:
         operator_ids=[
             operator['OperatorID'] for operator in item['Operators']
         ],
-        departure=item[f"DepartureStopName{_lang}"],
-        destination=item[f"DestinationStopName{_lang}"],
+        departure=item.get(f"DepartureStopName{_lang}", ""),
+        destination=item.get(f"DestinationStopName{_lang}", ""),
         price_description=item.get(f'TicketPriceDescription{_lang}', ''),
         fare_buffer_zone_description=item.get(
             f'FareBufferZoneDescription{_lang}', '')
