@@ -1,18 +1,12 @@
 import sys
-from aioredis import BlockingConnectionPool, Redis, ConnectionError, AuthenticationError
+from aioredis import from_url, Redis, ConnectionError, AuthenticationError
 
 from app.config import settings
-
-pool = BlockingConnectionPool.from_url(
-    settings.REDIS_URL,
-    decode_responses=True,
-    max_connections=10
-)
 
 
 async def connection() -> Redis:
     try:
-        client = Redis(connection_pool=pool)
+        client = from_url(settings.REDIS_URL, decode_responses=True)
 
         if await client.ping():
             return client
