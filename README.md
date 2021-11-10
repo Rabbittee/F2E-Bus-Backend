@@ -23,10 +23,10 @@ docker run --name test-redis -d -p 6379:6379 redis
 Connect Remote Redis
 
 ```shell
-docker run -it --rm redis redis-cli
-    -h ec2-50-19-118-165.compute-1.amazonaws.com \
-    -p 24369 \
-    -a pb3361052f6a0bdbd5bc124d1b5a523514e7a5757d47847c5d61d575af6299d4b
+docker run -it --rm redis redis-cli \
+    -h redis-19325.c273.us-east-1-2.ec2.cloud.redislabs.com \
+    -p 19325 \
+    -a zAbAwXc3S2DRzlQguWGv9BgUSmvWN0ta
 ```
 
 ## Local development

@@ -24,7 +24,7 @@ def _transform(item: dict, lang: Lang) -> RouteModel:
 
         return SubRoute(
             id=id,
-            name=item['SubRouteName'][lang.value],
+            name=item['SubRouteName'].get(lang.value, ""),
             headsign=item.get(f'Headsign{_lang}', ''),
             direction=int(item["Direction"]),
             lang=lang,

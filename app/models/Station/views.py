@@ -136,24 +136,31 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
 
 
 async def select_by_ids(ids: str, lang: Lang = Lang.ZH_TW):
-    tasks = [select_by_id(id, lang) for id in ids]
-    stations = await gather(*tasks)
+    stations = []
+
+    for id in ids:
+        stations.append(await select_by_id(id, lang))
 
     return stations
 
 
 async def get_route_ids_by_station_id(id: str, lang: Lang = Lang.ZH_TW):
     client = await connection()
-    return await client.smembers(KEY.STATION_ROUTE_IDS(id, lang))
+    return list(
+        await client.smembers(
+            KEY.STATION_ROUTE_IDS(id, lang)))
 
 
 async def get_routes_ids_by_station_ids(ids: List[str], lang: Lang = Lang.ZH_TW):
-    tasks = [get_route_ids_by_station_id(id, lang) for id in ids]
-    routes_ids = await gather(*tasks)
-    out = []
-    for ids in routes_ids:
-        out.extend(ids)
-    return list(set(out))
+    routes_ids = set()
+
+    for id in ids:
+        routes_ids = routes_ids.union(
+            set(await get_route_ids_by_station_id(id, lang)))
+        
+    print(routes_ids)
+
+    return list(routes_ids)
 
 
 async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
@@ -190,4 +197,4 @@ async def search_by_position(
         unit
     )
 
-    return station_ids
+    return list(station_ids)

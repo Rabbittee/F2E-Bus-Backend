@@ -66,4 +66,4 @@ async def query(
                 near_by_route_ids
             )
 
-    return match_items
+    return list(filter(None, match_items))
