@@ -66,4 +66,8 @@ async def query(
                 near_by_route_ids
             )
 
-    return list(filter(None, match_items))
+    def remove_none_from(ls): return list(filter(None, ls))
+    match_items["stations"] = remove_none_from(match_items["stations"])
+    match_items["routes"] = remove_none_from(match_items["routes"])
+
+    return match_items

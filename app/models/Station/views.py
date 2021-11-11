@@ -157,8 +157,6 @@ async def get_routes_ids_by_station_ids(ids: List[str], lang: Lang = Lang.ZH_TW)
     for id in ids:
         routes_ids = routes_ids.union(
             set(await get_route_ids_by_station_id(id, lang)))
-        
-    print(routes_ids)
 
     return list(routes_ids)
 
