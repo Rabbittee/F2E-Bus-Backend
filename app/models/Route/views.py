@@ -163,8 +163,6 @@ async def select_by_ids(ids: List[str], lang: Lang = Lang.ZH_TW):
     for id in ids:
         routes.append(await select_by_id(id, lang))
 
-    print(routes)
-
     return routes
 
 
