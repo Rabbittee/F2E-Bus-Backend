@@ -1,0 +1,49 @@
+name: Build and Deploy a Container
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+  SERVICE: f2e-bus-backend
+  REGION: asia-east1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker
+
+      - name: Build and Push Container
+        run: |-
+          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest .
+          docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@main
+        with:
+          service: ${{ env.SERVICE }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest
+          region: ${{ env.REGION }}
+          flags: --allow-unauthenticated
+          env_vars: TDX_HOST=${{ secrets.TDX_HOST }},\
+            TDX_API_ID=${{ secrets.TDX_API_ID }},\
+            TDX_API_KEY=${{ secrets.TDX_API_KEY }},\
+            REDIS_URL=${{ secrets.REDIS_URL }}
+
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}
