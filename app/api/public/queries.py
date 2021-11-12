@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from app.models import Station, Route
 from app.models.Geo.Location import str_to_location
 from app.models.Base import Error
+from app.services.google.geocoding import get_geolocation
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
@@ -22,7 +23,8 @@ async def query(
         None,
         regex="^\d{2}.?\d{0,7},\d{3}.?\d{0,7}$"
     ),
-    radius:  Optional[int] = Query(500, ge=0, le=3000)
+    radius:  Optional[int] = Query(500, ge=0, le=3000),
+    geocoding: bool = False
 ):
 
     def _filter_by_id(source, ids):
@@ -30,16 +32,10 @@ async def query(
             s for s in source if s.id in ids
         ]
 
-    match_items = {"routes": [], "stations": []}
-    if q is None and location is None:
-        raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
+    def remove_none_from(ls):
+        return list(filter(None, ls))
 
-    if q is not None:
-        match_items["routes"] = await Route.search_by_name(f'*{q}*')
-        match_items["stations"] = await Station.search_by_name(f'*{q}*')
-
-    if location:
-        position = str_to_location(location)
+    async def _filter_location(q, position, radius, match_items):
         near_by_station_ids = await Station.search_by_position(
             position,
             radius
@@ -65,8 +61,29 @@ async def query(
                 match_items["routes"],
                 near_by_route_ids
             )
+        return match_items
 
-    def remove_none_from(ls): return list(filter(None, ls))
+    match_items = {"routes": [], "stations": []}
+    if q is None and location is None:
+        raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
+
+    if q is not None:
+        match_items["routes"] = await Route.search_by_name(f'*{q}*')
+        match_items["stations"] = await Station.search_by_name(f'*{q}*')
+
+    if location:
+        position = str_to_location(location)
+
+        match_items = await _filter_location(
+            q, position, radius, match_items
+        )
+
+    if geocoding and len(match_items["stations"]) + len(match_items["routes"]) == 0:
+        positions = await get_geolocation(q)
+        match_items = await _filter_location(
+            None, positions[0], radius, match_items
+        )
+
     match_items["stations"] = remove_none_from(match_items["stations"])
     match_items["routes"] = remove_none_from(match_items["routes"])
 
