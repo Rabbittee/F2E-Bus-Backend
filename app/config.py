@@ -5,7 +5,7 @@ class Setting(BaseSettings):
     TDX_HOST: str
     TDX_API_ID: str
     TDX_API_KEY: str
-    REDIS_URL: str = Field(env="REDISCLOUD_URL")
+    REDIS_URL: str
 
     class Config:
         env_file = '.env'
