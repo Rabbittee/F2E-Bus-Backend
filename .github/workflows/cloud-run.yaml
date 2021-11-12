@@ -40,10 +40,7 @@ jobs:
           image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest
           region: ${{ env.REGION }}
           flags: --allow-unauthenticated
-          env_vars: TDX_HOST=${{ secrets.TDX_HOST }},\
-            TDX_API_ID=${{ secrets.TDX_API_ID }},\
-            TDX_API_KEY=${{ secrets.TDX_API_KEY }},\
-            REDIS_URL=${{ secrets.REDIS_URL }}
+          env_vars: TDX_HOST=${{ secrets.TDX_HOST }},TDX_API_ID=${{ secrets.TDX_API_ID }},TDX_API_KEY=${{ secrets.TDX_API_KEY }},REDIS_URL=${{ secrets.REDIS_URL }},GOOGLE_MAP_API=${{ secrets.GOOGLE_MAP_API }},GEOCODING_API_KEY=${{ secrets.GEOCODING_API_KEY }}
 
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}

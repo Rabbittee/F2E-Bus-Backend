@@ -3,31 +3,10 @@
 ## Table Of Contents
 
 - [About the Project](#about-the-project)
-- [Requirements](#requirements)
-- [Redis](#redis)
 - [Local development](#local-development)
 - [Docker](#docker)
 
 ## About the Project
-
-## Requirements
-
-## Redis
-
-For Local Development
-
-```shell
-docker run --name test-redis -d -p 6379:6379 redis
-```
-
-Connect Remote Redis
-
-```shell
-docker run -it --rm redis redis-cli \
-    -h redis-19325.c273.us-east-1-2.ec2.cloud.redislabs.com \
-    -p 19325 \
-    -a zAbAwXc3S2DRzlQguWGv9BgUSmvWN0ta
-```
 
 ## Local development
 
@@ -43,6 +22,12 @@ Run commands inside the virtual environment with:
 
 ```shell
 poetry run start
+```
+
+Run Redis for local development
+
+```shell
+docker run --name test-redis -d -p 6379:6379 redis
 ```
 
 ## Docker
