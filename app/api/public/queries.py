@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from app.models import Station, Route
-from app.models.Geo.Location import str_to_location
+from app.models.Geo.Location import Bbox, GeoLocation, find_bounding, get_bounding_center, str_to_location
 from app.models.Base import Error
 from app.services.google.geocoding import get_geocode
 
@@ -14,6 +14,8 @@ router = APIRouter(prefix="/queries", tags=["query"])
 class MatchItem(BaseModel):
     routes: List[Route.schemas.RouteModel]
     stations: List[Station.schemas.StationModel]
+    bbox: Optional[Bbox] = None
+    center: Optional[GeoLocation] = None
 
 
 @router.get("/recommend", response_model=MatchItem)
@@ -23,7 +25,7 @@ async def query(
         None,
         regex="^\d{2}.?\d{0,7},\d{3}.?\d{0,7}$"
     ),
-    radius:  Optional[int] = Query(500, ge=0, le=3000),
+    radius:  Optional[int] = Query(200, ge=0, le=3000),
     geocoding: bool = False
 ):
 
@@ -86,6 +88,11 @@ async def query(
 
     match_items["stations"] = remove_none_from(match_items["stations"])
     match_items["routes"] = remove_none_from(match_items["routes"])
+
+    if len(match_items["stations"]) > 0:
+        locations = [station.position for station in match_items["stations"]]
+        match_items["bbox"] = find_bounding(locations)
+        match_items["center"] = get_bounding_center(match_items["bbox"])
 
     return match_items
 
