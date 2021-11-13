@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from app.models import Station, Route
 from app.models.Geo.Location import str_to_location
 from app.models.Base import Error
-from app.services.google.geocoding import get_geolocation
+from app.services.google.geocoding import get_geocode
 
 router = APIRouter(prefix="/queries", tags=["query"])
 
@@ -79,12 +79,19 @@ async def query(
         )
 
     if geocoding and len(match_items["stations"]) + len(match_items["routes"]) == 0:
-        positions = await get_geolocation(q)
+        geocodes = await get_geocode(q)
         match_items = await _filter_location(
-            None, positions[0], radius, match_items
+            None, geocodes[0].location, radius, match_items
         )
 
     match_items["stations"] = remove_none_from(match_items["stations"])
     match_items["routes"] = remove_none_from(match_items["routes"])
 
     return match_items
+
+
+@router.get("/geocoding", response_model=List)
+async def geocoding(keyword: str):
+    positions = await get_geocode(keyword)
+
+    return positions

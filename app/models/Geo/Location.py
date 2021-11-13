@@ -15,6 +15,11 @@ class GeoLineString(BaseModel):
     direction: Optional[Direction] = None
 
 
+class Geocode(BaseModel):
+    location: GeoLocation
+    address: str
+
+
 def str_to_location(location: str):
     lat, lon = location.split(',')
     return GeoLocation(lon=float(lon), lat=float(lat))
