@@ -1,4 +1,4 @@
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings
 
 
 class Setting(BaseSettings):
@@ -8,7 +8,6 @@ class Setting(BaseSettings):
     GOOGLE_MAP_API: str
     GEOCODING_API_KEY: str
     REDIS_URL: str
-
 
     class Config:
         env_file = '.env'
