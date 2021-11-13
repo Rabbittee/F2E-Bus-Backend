@@ -208,7 +208,7 @@ async def select_stop_of_route(
     lang: Lang = Lang.ZH_TW
 ) -> List[Stop.StopOfRoute]:
     route = await select_by_id(route_id)
-    routeStops = await get_stop_of_route(City.Taipei, route.name)
+    routeStops = await get_stop_of_route(route.city, route.name)
 
     stopOfRoutes = []
     for routeStop in routeStops:
