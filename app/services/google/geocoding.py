@@ -23,6 +23,9 @@ def _transform(data):
 
 async def get_geocode(address: str) -> List[Geocode]:
 
-    res = await GET(TypeEnum.GEOCODE, f"address={address}")
+    res = await GET(TypeEnum.GEOCODE, {
+        "address": address,
+        "region": "tw"
+    })
 
     return _transform(res.json())

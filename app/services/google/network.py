@@ -1,7 +1,6 @@
 from enum import Enum
-from fastapi.param_functions import Header
+from urllib.parse import urlencode
 import httpx
-
 from app.config import settings
 
 GOOGLE_MAP_API = settings.GOOGLE_MAP_API
@@ -12,8 +11,10 @@ class TypeEnum(str, Enum):
     GEOCODE = 'geocode'
 
 
-async def GET(type: TypeEnum, url: str):
-    url = f"{GOOGLE_MAP_API}/{type}/json?key={GEOCODING_API_KEY}&" + url
+async def GET(type: TypeEnum, params: dict):
+    url = f"{GOOGLE_MAP_API}/{type}/json?" + \
+        urlencode({"key": GEOCODING_API_KEY, **params})
+
     header = {
         'accept-language': 'zh-TW'
     }
