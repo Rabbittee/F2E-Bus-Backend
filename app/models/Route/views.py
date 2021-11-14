@@ -222,7 +222,10 @@ async def select_stop_of_route(
     if estimated_time:
         stop_uid_time = {}
         for estimated in stop_estimated_time[0]:
-            stop_uid_time[estimated['StopUID']] = estimated['EstimateTime']
+            stop_uid_time[estimated['StopUID']] = estimated.get(
+                'EstimateTime',
+                -1*estimated['StopStatus']
+            )
 
     stop_of_routes = []
     for route_stop in route_stops:
@@ -265,5 +268,8 @@ async def get_estimated_time(
 
     stop_uid_time = {}
     for estimated in stop_estimated_time:
-        stop_uid_time[estimated['StopUID']] = estimated['EstimateTime']
+        stop_uid_time[estimated['StopUID']] = estimated.get(
+            'EstimateTime',
+            -1*estimated['StopStatus']
+        )
     return stop_uid_time
