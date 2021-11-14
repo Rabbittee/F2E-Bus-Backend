@@ -1,5 +1,5 @@
 from asyncio import gather
-from typing import List
+from typing import Dict, List
 from aioredis.client import Pipeline
 
 from app.db.cache import connection
@@ -250,3 +250,20 @@ async def select_stop_of_route(
         )
 
     return stop_of_routes
+
+
+async def get_estimated_time(
+    route_id: str,
+    direction: int,
+) -> Dict[str, int]:
+    route = await select_by_id(route_id)
+    stop_estimated_time = await get_route_estimated_time(
+        route.city,
+        route.name,
+        direction
+    )
+
+    stop_uid_time = {}
+    for estimated in stop_estimated_time:
+        stop_uid_time[estimated['StopUID']] = estimated['EstimateTime']
+    return stop_uid_time

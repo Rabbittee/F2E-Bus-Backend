@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from fastapi import APIRouter
 
@@ -32,6 +32,19 @@ async def stop_of_route(
         raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
 
     return routes[0]
+
+
+@router.get("/{route_id}/stops/estimatetime", response_model=Dict[str, int])
+async def stop_estimate_time(
+    route_id: str,
+    direction: int
+):
+    stop_estimated_time = await Route.get_estimated_time(route_id, direction)
+
+    if stop_estimated_time is None:
+        raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
+
+    return stop_estimated_time
 
 
 @router.get("/{route_id}/line_string", response_model=List[GeoLineString])
