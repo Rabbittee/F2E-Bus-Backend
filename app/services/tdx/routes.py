@@ -1,5 +1,6 @@
 from typing import List
 from itertools import chain
+from urllib.parse import urlencode
 
 from app.models.Stop.schemas import StopModel
 from app.models.Route.schemas import RouteModel, SubRoute
@@ -67,7 +68,32 @@ def transform(data: List[dict]) -> List[RouteModel]:
     )
 
 
-async def get_stop_of_route(city: City, route_name) -> List[StopModel]:
-    res = await GET(f"/Bus/StopOfRoute/City/{city.value}/{route_name}")
+async def get_stop_of_route(
+    city: City,
+    route_name: str,
+    direction: int
+) -> List[StopModel]:
+    res = await GET(
+        f"/Bus/StopOfRoute/City/{city.value}/{route_name}?" +
+        urlencode({
+            "$filter": f"Direction eq {direction}"
+        })
+    )
+
+    return res.json()
+
+
+async def get_route_estimated_time(
+    city: City,
+    route_name: str,
+    direction: int
+):
+    res = await GET(
+        f"/Bus/EstimatedTimeOfArrival/City/{city.value}/{route_name}?" +
+        urlencode({
+            "$top": 1000,
+            "$filter": f"Direction eq {direction}"
+        })
+    )
 
     return res.json()

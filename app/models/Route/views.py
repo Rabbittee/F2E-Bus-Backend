@@ -3,7 +3,7 @@ from typing import List
 from aioredis.client import Pipeline
 
 from app.db.cache import connection
-from app.services.tdx import get_stop_of_route
+from app.services.tdx import get_stop_of_route, get_route_estimated_time
 
 from ..Constant import BusType, Direction, DirectionInfo, Lang, City
 from .. import Stop
@@ -205,33 +205,48 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
 
 async def select_stop_of_route(
     route_id: str,
-    lang: Lang = Lang.ZH_TW
+    direction: int,
+    estimated_time: bool = False,
+    lang: Lang = Lang.ZH_TW,
 ) -> List[Stop.StopOfRoute]:
     route = await select_by_id(route_id)
-    routeStops = await get_stop_of_route(route.city, route.name)
 
-    stopOfRoutes = []
-    for routeStop in routeStops:
+    promises = [get_stop_of_route(route.city, route.name, direction)]
+    if estimated_time:
+        promises.append(
+            get_route_estimated_time(route.city, route.name, direction)
+        )
+
+    [route_stops, *stop_estimated_time] = await gather(*promises)
+
+    if estimated_time:
+        stop_uid_time = {}
+        for estimated in stop_estimated_time[0]:
+            stop_uid_time[estimated['StopUID']] = estimated['EstimateTime']
+
+    stop_of_routes = []
+    for route_stop in route_stops:
         stops = [{
             'name': stop['StopName'][lang.value],
             'id': stop['StopUID'],
+            'estimate_time': stop_uid_time[stop['StopUID']] if estimated_time else None,
             'position': {
                 'hash': stop['StopPosition']['GeoHash'],
                 'lon': stop['StopPosition']['PositionLon'],
                 'lat': stop['StopPosition']['PositionLat']
             }
-        } for stop in routeStop['Stops']]
+        } for stop in route_stop['Stops']]
 
-        stopOfRoutes.append(
+        stop_of_routes.append(
             Stop.schemas.StopOfRoute(**{
-                'route_name': routeStop['RouteName'][lang.value],
+                'route_name': route_stop['RouteName'][lang.value],
                 'direction': DirectionInfo(
                     departure=route.departure,
                     destination=route.destination,
-                    direction=routeStop['Direction']
+                    direction=route_stop['Direction']
                 ),
                 'stops': stops
             })
         )
 
-    return stopOfRoutes
+    return stop_of_routes
