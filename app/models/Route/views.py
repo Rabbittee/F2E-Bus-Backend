@@ -268,7 +268,6 @@ async def get_estimated_time(
 
     stop_uid_time = {}
     for estimated in stop_estimated_time:
-        print(estimated['StopStatus'])
         stop_uid_time[estimated['StopUID']] = estimated.get(
             'EstimateTime',
             -1*estimated['StopStatus']
