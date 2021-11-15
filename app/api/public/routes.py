@@ -10,7 +10,7 @@ from app.services.tdx.route_linestring import get_route_line_string
 router = APIRouter(prefix="/routes", tags=["routes"])
 
 
-@router.get("/{route_id}/infomations", response_model=Route.RouteModel)
+@router.get("/{route_id}/information", response_model=Route.RouteModel)
 async def route_info(route_id: str):
     route = await Route.select_by_id(route_id)
 
