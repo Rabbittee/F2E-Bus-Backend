@@ -13,8 +13,15 @@ async def add_routes(city: City):
     routes = await get_routes_in(city)
 
     try:
+        name_hash = {}
         for route in routes:
             await Route.add_one(route)
+            if route.name not in name_hash:
+                name_hash[route.name] = set()
+
+            name_hash[route.name].add(route.id)
+
+        await Route.add_name_hash(name_hash)
 
     except Exception as error:
         print(error)

@@ -26,6 +26,22 @@ class KEY:
         return f"{lang.value}:stop:{id}"
 
 
+async def add_name_hash(name_hash):
+    client = await connection()
+
+    for name, ids in name_hash.items():
+        result = await client.hsetnx(KEY.MAPPING_NAME_ID, name, ','.join(list(ids)))
+        if result == 1:
+            continue
+
+        old_ids = await client.hget(KEY.MAPPING_NAME_ID, name)
+        await client.hset(
+            KEY.MAPPING_NAME_ID,
+            name,
+            ','.join(list(set(old_ids) | ids))
+        )
+
+
 async def add_one(station: StationModel):
     client = await connection()
 
@@ -62,10 +78,6 @@ async def add_one(station: StationModel):
             *station.route_ids
         ).sadd(
             KEY.MAPPING_ID,
-            station.id
-        ).hset(
-            KEY.MAPPING_NAME_ID,
-            station.name,
             station.id
         ))
 
@@ -164,19 +176,19 @@ async def get_routes_ids_by_station_ids(ids: List[str], lang: Lang = Lang.ZH_TW)
 async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
     client = await connection()
 
-    tasks = []
-
+    id_list = []
     next = 0
     while True:
         (next, dict) = await client.hscan(KEY.MAPPING_NAME_ID, next, name)
 
         if bool(dict):
-            tasks += [select_by_id(id, lang) for id in dict.values()]
+            for ids in dict.values():
+                id_list += ids.split(',')
 
         if next == 0:
             break
 
-    return await gather(*tasks)
+    return await gather(*[select_by_id(id, lang) for id in list(set(id_list))])
 
 
 async def search_by_position(

@@ -21,6 +21,22 @@ class KEY:
         return f"{lang.value}:sub_route:{id}"
 
 
+async def add_name_hash(name_hash):
+    client = await connection()
+
+    for name, ids in name_hash.items():
+        result = await client.hsetnx(KEY.MAPPING_NAME_ID, name, ','.join(list(ids)))
+        if result == 1:
+            continue
+
+        old_ids = await client.hget(KEY.MAPPING_NAME_ID, name)
+        await client.hset(
+            KEY.MAPPING_NAME_ID,
+            name,
+            ','.join(list(set(old_ids) | ids))
+        )
+
+
 async def add_one(route: RouteModel):
     client = await connection()
 
@@ -54,25 +70,27 @@ async def add_one(route: RouteModel):
 
             pipe.sadd(f"{key}:sub_routes", sub_route.id)
 
-        (
-            pipe
-            .hset(
-                key,
-                mapping={
-                    "id": route.id,
-                    "name": route.name,
-                    "type": route.type.value,
-                    "city": route.city.value,
-                    "authority_id": route.authority_id,
-                    "provider_id": route.provider_id,
-                    "departure": route.departure,
-                    "destination": route.destination,
-                    "price_description": route.price_description,
-                    "fare_buffer_zone_description": route.fare_buffer_zone_description,
-                })
-            .sadd(f"{key}:operator_ids", *route.operator_ids)
-            .sadd(KEY.MAPPING_ID, route.id)
-            .hset(KEY.MAPPING_NAME_ID, route.name, route.id))
+        (pipe.hset(
+            key,
+            mapping={
+                "id": route.id,
+                "name": route.name,
+                "type": route.type.value,
+                "city": route.city.value,
+                "authority_id": route.authority_id,
+                "provider_id": route.provider_id,
+                "departure": route.departure,
+                "destination": route.destination,
+                "price_description": route.price_description,
+                "fare_buffer_zone_description": route.fare_buffer_zone_description,
+            }
+        ).sadd(
+            f"{key}:operator_ids",
+            *route.operator_ids
+        ).sadd(
+            KEY.MAPPING_ID,
+            route.id
+        ))
 
         await pipe.execute()
 
@@ -189,18 +207,19 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
 
     client = await connection()
 
-    tasks = []
-
+    id_list = []
     next = 0
     while True:
         (next, dict) = await client.hscan(KEY.MAPPING_NAME_ID, next, name)
 
-        tasks += [select_by_id(id, lang) for id in dict.values()]
+        if bool(dict):
+            for ids in dict.values():
+                id_list += ids.split(',')
 
         if next == 0:
             break
 
-    return await gather(*tasks)
+    return await gather(*[select_by_id(id, lang) for id in list(set(id_list))])
 
 
 async def select_stop_of_route(
