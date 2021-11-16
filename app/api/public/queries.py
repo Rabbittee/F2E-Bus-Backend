@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from app.models import Station, Route
-from app.models.Geo.Location import Bbox, GeoLocation, find_bounding, get_bounding_center, str_to_location
+from app.models.Geo.Location import Bbox, GeoLocation, find_bounding, get_centroid, str_to_location
 from app.models.Base import Error
 from app.services.google.geocoding import get_geocode
 
@@ -85,7 +85,7 @@ async def query(
     if with_bounding_center and len(match_items["stations"]) > 0:
         locations = [station.position for station in match_items["stations"]]
         match_items["bbox"] = find_bounding(locations)
-        match_items["center"] = get_bounding_center(match_items["bbox"])
+        match_items["center"] = get_centroid(locations)
 
     return match_items
 

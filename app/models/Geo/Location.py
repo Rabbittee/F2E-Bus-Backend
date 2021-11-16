@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 from geojson.geometry import LineString
+from statistics import mean
 
 from ..Constant import Direction
 
@@ -57,8 +58,8 @@ def find_bounding(locations: List[GeoLocation]) -> Bbox:
     return bbox
 
 
-def get_bounding_center(bbox: Bbox) -> GeoLocation:
+def get_centroid(points: List[GeoLocation]) -> GeoLocation:
     return GeoLocation(
-        lon=round((bbox.left + bbox.right)/2, 6),
-        lat=round((bbox.top + bbox.bottom)/2, 6)
+        lat=mean([p.lat for p in points]),
+        lon=mean([p.lon for p in points])
     )
