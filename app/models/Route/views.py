@@ -230,6 +230,9 @@ async def select_stop_of_route(
 ) -> List[Stop.StopOfRoute]:
     route = await select_by_id(route_id)
 
+    if not route:
+        return
+
     promises = [get_stop_of_route(route.city, route.name, direction)]
     if estimated_time:
         promises.append(
@@ -279,6 +282,10 @@ async def get_estimated_time(
     direction: int,
 ) -> Dict[str, int]:
     route = await select_by_id(route_id)
+
+    if not route:
+        return
+
     stop_estimated_time = await get_route_estimated_time(
         route.city,
         route.name,
