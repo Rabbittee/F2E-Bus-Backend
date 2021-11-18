@@ -34,3 +34,21 @@ async def add_stations(city: City):
         "message": "write stations from TDX into Redis successful",
         "num_of_stations": len(stations),
     }
+
+
+@router.delete('/clean_name_hash')
+async def clean_name_hash():
+    try:
+        await Station.clean_name_hash()
+
+    except Exception as error:
+        print(error)
+
+        return {
+            "message": "Failed to clean stations name hash",
+            "exception_message": error
+        }
+
+    return {
+        "message": "clean stations name from Redis successful",
+    }

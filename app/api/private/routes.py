@@ -36,3 +36,21 @@ async def add_routes(city: City):
         "num_of_routes": len(routes),
         "num_of_sub_routes": sum([len(route.sub_routes) for route in routes])
     }
+
+
+@router.delete('/clean_name_hash')
+async def clean_name_hash():
+    try:
+        await Route.clean_name_hash()
+
+    except Exception as error:
+        print(error)
+
+        return {
+            "message": "Failed to clean routes name hash",
+            "exception_message": error
+        }
+
+    return {
+        "message": "clean routes name from Redis successful",
+    }
