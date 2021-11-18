@@ -38,8 +38,13 @@ async def add_name_hash(name_hash):
         await client.hset(
             KEY.MAPPING_NAME_ID,
             name,
-            ','.join(list(set(old_ids) | ids))
+            ','.join(list(set(old_ids.split(',')) | ids))
         )
+
+
+async def clean_name_hash():
+    client = await connection()
+    await client.delete(KEY.MAPPING_NAME_ID)
 
 
 async def add_one(station: StationModel):
