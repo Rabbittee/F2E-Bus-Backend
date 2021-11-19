@@ -1,7 +1,7 @@
+from enum import Enum
 from typing import Optional, List
 from pydantic import BaseModel
-from ..Constant import BusType, Lang, Direction
-from ..Constant.city import City
+from ..Constant import BusType, Lang, Direction, Day, City
 
 
 class SubRoute(BaseModel):
@@ -41,3 +41,26 @@ class RouteModel(BaseModel):
 
     URL: Optional[str] = None
     nearby_station: Optional[str] = None
+
+
+class TimetableType(str, Enum):
+    Flexible = 'flexible'
+    Regular = 'regular'
+
+
+class Timetable(BaseModel):
+    day: Day
+    type: TimetableType
+
+
+class FlexibleTimetable(Timetable):
+    type = TimetableType.Flexible
+    max_headway: int
+    min_headway: int
+    start_time: str
+    end_time: str
+
+
+class RegularTimetable(Timetable):
+    type = TimetableType.Regular
+    arrival_time: str

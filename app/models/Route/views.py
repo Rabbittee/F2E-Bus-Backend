@@ -1,13 +1,14 @@
 from asyncio import gather
 from typing import Dict, List
 from aioredis.client import Pipeline
+from itertools import groupby
 
 from app.db.cache import connection
-from app.services.tdx import get_stop_of_route, get_route_estimated_time
+from app.services.tdx import get_stop_of_route, get_route_estimated_time, get_route_schedule
 
-from ..Constant import BusType, Direction, DirectionInfo, Lang, City
+from ..Constant import BusType, Direction, DirectionInfo, Lang, City, Day
 from .. import Stop
-from . import RouteModel, SubRoute
+from .schemas import RouteModel, SubRoute, Timetable, FlexibleTimetable, RegularTimetable
 
 
 class KEY:
@@ -304,3 +305,52 @@ async def get_estimated_time(
             -1*estimated['StopStatus']
         )
     return stop_uid_time
+
+
+def get_day_by_service_day(data: dict) -> Day:
+    for key, value in data.items():
+        if value:
+            return key.lower()
+
+
+def transform_by_frequency(data: dict):
+    return FlexibleTimetable(
+        day=get_day_by_service_day(data['ServiceDay']),
+        max_headway=data['MaxHeadwayMins'],
+        min_headway=data['MinHeadwayMins'],
+        start_time=data['StartTime'],
+        end_time=data['EndTime'],
+    )
+
+
+def transform_by_timetables(data: dict):
+    return RegularTimetable(
+        day=get_day_by_service_day(data['ServiceDay']),
+        arrival_time=data['StopTimes'][0]['ArrivalTime']
+    )
+
+
+def group_by_day(data: list[Timetable]):
+    return {
+        key: list(group)
+        for key, group in groupby(data, lambda x: x.day)
+    }
+
+
+async def get_schedule(route_id: str):
+    route = await select_by_id(route_id)
+
+    if route is None:
+        return
+
+    res = await get_route_schedule(route)
+
+    if 'Frequencys' in res:
+        return group_by_day(
+            list(map(transform_by_frequency, res.get("Frequencys")))
+        )
+
+    if 'Timetables' in res:
+        return group_by_day(
+            list(map(transform_by_timetables, res.get("Timetables")))
+        )
