@@ -4,6 +4,7 @@ from app.models.Constant.day import Day
 
 from app.models.Geo.Location import GeoLineString
 from app.models import Route, Stop
+from app.models.Trip import Trip
 from app.models.Base import Error
 from app.services.tdx.route_linestring import get_route_line_string
 
@@ -34,7 +35,7 @@ async def stop_of_route(
     return routes[0]
 
 
-@router.get("/{route_id}/stops/estimatetime", response_model=Dict[str, int])
+@router.get("/{route_id}/stops/estimatetime", response_model=List[Trip])
 async def stop_estimate_time(
     route_id: str,
     direction: int

@@ -8,6 +8,7 @@ from app.services.tdx import get_stop_of_route, get_route_estimated_time, get_ro
 
 from ..Constant import BusType, Direction, DirectionInfo, Lang, City, Day
 from .. import Stop
+from ..Trip import Trip
 from .schemas import RouteModel, SubRoute, Timetable, FlexibleTimetable, RegularTimetable
 
 
@@ -297,14 +298,16 @@ async def get_estimated_time(
         route.name,
         direction
     )
-
-    stop_uid_time = {}
-    for estimated in stop_estimated_time:
-        stop_uid_time[estimated['StopUID']] = estimated.get(
-            'EstimateTime',
-            -1*estimated['StopStatus']
+    
+    def transform(item: dict):
+        return Trip(
+            route_id = route_id,
+            station_id = item.get('StopUID'),
+            time_offset = item.get('EstimateTime', 0),
+            status = item.get('StopStatus')
         )
-    return stop_uid_time
+    
+    return list(map(transform, stop_estimated_time))
 
 
 def get_day_by_service_day(data: dict) -> Day:
