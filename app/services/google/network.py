@@ -11,7 +11,7 @@ class TypeEnum(str, Enum):
     GEOCODE = 'geocode'
 
 
-async def GET(type: TypeEnum, params: dict):
+async def GET(type: TypeEnum, params: dict = {}):
     url = f"{GOOGLE_MAP_API}/{type}/json?" + \
         urlencode({"key": GEOCODING_API_KEY, **params})
 

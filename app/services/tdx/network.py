@@ -1,6 +1,7 @@
 import httpx
 import time
 
+from urllib.parse import urlencode
 from wsgiref.handlers import format_date_time
 from hmac import digest
 from hashlib import sha1
@@ -38,7 +39,7 @@ def hmac(username: str, signature: str):
     )
 
 
-async def GET(url: str):
+async def GET(url: str, params: dict = {}):
     current_time = format_date_time(time.time())
 
     headers = {
@@ -50,7 +51,10 @@ async def GET(url: str):
     }
 
     async with httpx.AsyncClient() as client:
-        res = await client.get(HOST + url, headers=headers)
+        res = await client.get(
+            f'{HOST}{url}?{urlencode(params)}',
+            headers=headers
+        )
 
         if res.status_code != 200:
             raise ConnectionError(
