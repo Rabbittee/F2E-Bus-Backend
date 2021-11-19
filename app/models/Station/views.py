@@ -7,7 +7,9 @@ from app.db.cache import connection
 from ..Constant import Lang
 from ..Geo.Location import GeoLocation
 from ..Station import StationModel, Stop
+from ..Trip import Trip
 from ..Route import select_by_id as route_select_by_id
+from app.services.tdx import get_estimate_time_by_station
 
 
 class KEY:
@@ -70,8 +72,10 @@ async def add_one(station: StationModel):
             key,
             mapping={
                 "id": station.id,
+                "tdx_id": station.tdx_id,
                 "name": station.name,
                 "address": station.address,
+                "city": station.city.value
             }
         ).geoadd(
             KEY.STATION_GEO,
@@ -141,8 +145,10 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
 
         return StationModel(
             id=dict['id'],
+            tdx_id=dict['tdx_id'],
             name=dict['name'],
             lang=lang,
+            city=dict['city'],
             address=dict['address'],
             position=GeoLocation(lon=geo[0][0], lat=geo[0][1]),
             route_ids=route_ids,
@@ -213,3 +219,22 @@ async def search_by_position(
     )
 
     return list(station_ids)
+
+
+async def get_estimate_time(station_id: str):
+    station = await select_by_id(station_id)
+
+    if station is None:
+        return
+
+    res = await get_estimate_time_by_station(station)
+
+    def transform(item: dict):
+        return Trip(
+            station_id=station_id,
+            route_id=item.get('RouteUID'),
+            time_offset=item.get('EstimateTime', 0),
+            status=item.get('StopStatus')
+        )
+
+    return list(map(transform, res))

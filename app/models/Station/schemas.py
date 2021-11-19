@@ -1,8 +1,9 @@
 from typing import Optional, List
 from pydantic import BaseModel
 
+
 from ..Geo import GeoLocation
-from ..Constant import Lang
+from ..Constant import Lang, City
 
 
 class Stop(BaseModel):
@@ -13,16 +14,18 @@ class Stop(BaseModel):
 
 class StationModel(BaseModel):
     id: str
+    tdx_id: str
+
     name: str
     lang: Lang
 
     address: str
     position: GeoLocation
+    city: City
 
     stops: List[Stop]
 
     route_ids: List[str]
-    # routes_name: Optional[List[str]] = None
     routes: Optional[List] = None
 
     URL: Optional[str] = None
