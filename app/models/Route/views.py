@@ -298,15 +298,15 @@ async def get_estimated_time(
         route.name,
         direction
     )
-    
+
     def transform(item: dict):
         return Trip(
-            route_id = route_id,
-            station_id = item.get('StopUID'),
-            time_offset = item.get('EstimateTime', 0),
-            status = item.get('StopStatus')
+            route_id=route_id,
+            station_id=item.get('StopUID'),
+            time_offset=item.get('EstimateTime', 0),
+            status=item.get('StopStatus')
         )
-    
+
     return list(map(transform, stop_estimated_time))
 
 
@@ -333,7 +333,7 @@ def transform_by_timetables(data: dict):
     )
 
 
-def group_by_day(data: list[Timetable]):
+def group_by_day(data: List[Timetable]):
     return {
         key: list(group)
         for key, group in groupby(data, lambda x: x.day)

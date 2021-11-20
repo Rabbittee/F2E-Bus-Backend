@@ -53,6 +53,7 @@ async def get_stations_in(city: City) -> List[StationModel]:
 
 async def get_estimate_time_by_station(station: StationModel):
     res = await GET(
-        f"/Bus/EstimatedTimeOfArrival/City/{station.city.value}/PassThrough/Station/{station.tdx_id}")
+        f"/Bus/EstimatedTimeOfArrival/City/{station.city.value}/PassThrough/Station/{station.tdx_id}"
+    )
 
     return res.json()
