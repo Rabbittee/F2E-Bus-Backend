@@ -88,6 +88,9 @@ async def add_one(station: StationModel):
         ).sadd(
             KEY.MAPPING_ID,
             station.id
+        ).sadd(
+            station.tdx_id,
+            station.id
         ))
 
         await pipe.execute()
@@ -105,6 +108,14 @@ async def is_exist(**kwargs):
             return bool(await client.sismember(KEY.MAPPING_ID, value))
 
     return False
+
+
+async def get_same_station_ids(id, tdx_id):
+    client = await connection()
+    same_stations = await client.smembers(tdx_id)
+    return [
+        station for station in same_stations if station != id
+    ]
 
 
 async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
@@ -134,6 +145,21 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
                 f"{key}:stops"
             ).execute()
         )
+
+        same_stations = await get_same_station_ids(dict['id'], dict['tdx_id'])
+
+        if len(same_stations) > 0:
+            for same_station in same_stations:
+                other_key = KEY.STATION(same_station, lang)
+                other_route_ids, other_stop_ids = await (
+                    pipe.smembers(
+                        KEY.STATION_ROUTE_IDS(same_station, lang)
+                    ).smembers(
+                        f"{other_key}:stops"
+                    ).execute()
+                )
+                stop_ids |= other_stop_ids
+                route_ids |= other_route_ids
 
         stops = []
         for id in stop_ids:
@@ -199,7 +225,22 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
         if next == 0:
             break
 
-    return await gather(*[select_by_id(id, lang) for id in list(set(id_list))])
+    def _remove_same_id(stations):
+        tdx_ids = set()
+        filter_stations = []
+        for station in stations:
+            if station.tdx_id in tdx_ids:
+                continue
+            tdx_ids.add(station.tdx_id)
+            filter_stations.append(station)
+
+        return filter_stations
+
+    stations = await gather(
+        *[select_by_id(id, lang) for id in list(set(id_list))]
+    )
+
+    return _remove_same_id(stations)
 
 
 async def search_by_position(
@@ -227,7 +268,7 @@ async def get_estimate_time(station_id: str):
     if station is None:
         return
 
-    res = await get_estimate_time_by_station(station)
+    stations = [station]
 
     def transform(item: dict):
         return Trip(
@@ -237,4 +278,15 @@ async def get_estimate_time(station_id: str):
             status=item.get('StopStatus')
         )
 
-    return list(map(transform, res))
+    same_stations = await get_same_station_ids(station.id, station.tdx_id)
+    if len(same_stations) > 0:
+        for other_station_id in same_stations:
+            other_station = await select_by_id(other_station_id)
+            stations.append(other_station)
+
+    results = []
+    for station in stations:
+        res = await get_estimate_time_by_station(station)
+        results += list(map(transform, res))
+
+    return results
