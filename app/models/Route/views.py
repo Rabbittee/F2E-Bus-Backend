@@ -217,7 +217,7 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
     id_list = []
     next = 0
     while True:
-        (next, dict) = await client.hscan(KEY.MAPPING_NAME_ID, next, name)
+        (next, dict) = await client.hscan(KEY.MAPPING_NAME_ID, next, name, 4000)
 
         if bool(dict):
             for ids in dict.values():

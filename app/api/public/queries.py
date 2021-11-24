@@ -1,4 +1,5 @@
 from typing import List, Optional
+from asyncio import gather
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
@@ -63,8 +64,12 @@ async def query(
         raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
 
     if q is not None:
-        match_items["routes"] = await Route.search_by_name(f'*{q}*')
-        match_items["stations"] = await Station.search_by_name(f'*{q}*')
+        [routes_result, stations_result] = await gather(
+            Route.search_by_name(f'*{q}*'),
+            Station.search_by_name(f'*{q}*')
+        )
+        match_items["routes"] = routes_result
+        match_items["stations"] = stations_result
 
     if location:
         position = str_to_location(location)

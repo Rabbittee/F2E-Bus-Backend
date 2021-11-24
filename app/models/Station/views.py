@@ -1,5 +1,6 @@
 from asyncio import gather
 from typing import List
+
 from aioredis.client import Pipeline
 
 from app.db.cache import connection
@@ -127,64 +128,59 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
 
     client = await connection()
 
-    async def _select_stop_by_id(pipe: Pipeline, id: str):
-        key = KEY.STOP(id, lang)
-        dict, = await pipe.hgetall(key).execute()
+    # async def _select_stop_by_id(id: str):
+    #     key = KEY.STOP(id, lang)
+    #     dict = await client.hgetall(key)
 
-        return Stop(id=dict['id'], name=dict['name'], lang=lang)
+    #     return Stop(id=dict['id'], name=dict['name'], lang=lang)
 
-    async with client.pipeline() as pipe:
-        key = KEY.STATION(id, lang)
+    key = KEY.STATION(id, lang)
 
-        dict, geo, route_ids, stop_ids = await (
-            pipe.hgetall(
-                key
-            ).geopos(
-                KEY.STATION_GEO,
-                id
-            ).smembers(
-                KEY.STATION_ROUTE_IDS(id, lang)
-            ).smembers(
-                f"{key}:stops"
-            ).execute()
-        )
+    dict, geo, route_ids, stop_ids = await gather(
+        client.hgetall(key),
+        client.geopos(KEY.STATION_GEO, id),
+        client.smembers(KEY.STATION_ROUTE_IDS(id, lang)),
+        client.smembers(f"{key}:stops")
+    )
 
-        same_stations = await get_same_station_ids(dict['id'], dict['tdx_id'])
+    same_stations = await get_same_station_ids(dict['id'], dict['tdx_id'])
 
-        if len(same_stations) > 0:
-            for same_station in same_stations:
-                other_key = KEY.STATION(same_station, lang)
-                other_route_ids, other_stop_ids = await (
-                    pipe.smembers(
-                        KEY.STATION_ROUTE_IDS(same_station, lang)
-                    ).smembers(
-                        f"{other_key}:stops"
-                    ).execute()
+    if len(same_stations) > 0:
+        for same_station in same_stations:
+            other_key = KEY.STATION(same_station, lang)
+            other_route_ids, other_stop_ids = await gather(
+                client.smembers(
+                    KEY.STATION_ROUTE_IDS(same_station, lang)
+                ),
+                client.smembers(
+                    f"{other_key}:stops"
                 )
-                stop_ids |= other_stop_ids
-                route_ids |= other_route_ids
+            )
+            stop_ids |= other_stop_ids
+            route_ids |= other_route_ids
 
-        stops = []
-        for id in stop_ids:
-            stops.append(await _select_stop_by_id(pipe, id))
+    stops = []
+    # stops = await gather(
+    #     *[_select_stop_by_id(id) for id in stop_ids]
+    # )
 
-        routes = []
-        for id in route_ids:
-            routes.append(await route_select_by_id(id))
+    routes = await gather(
+        *[route_select_by_id(id) for id in route_ids]
+    )
 
-        return StationModel(
-            id=dict['id'],
-            tdx_id=dict['tdx_id'],
-            name=dict['name'],
-            lang=lang,
-            city=dict['city'],
-            address=dict.get('address'),
-            position=GeoLocation(lon=geo[0][0], lat=geo[0][1]),
-            route_ids=route_ids,
-            routes=routes,
-            stops=stops,
-            URL=f'/api/stations/{dict["id"]}/infomations'
-        )
+    return StationModel(
+        id=dict['id'],
+        tdx_id=dict['tdx_id'],
+        name=dict['name'],
+        lang=lang,
+        city=dict['city'],
+        address=dict.get('address'),
+        position=GeoLocation(lon=geo[0][0], lat=geo[0][1]),
+        route_ids=route_ids,
+        routes=routes,
+        stops=stops,
+        URL=f'/api/stations/{dict["id"]}/infomations'
+    )
 
 
 async def select_by_ids(ids: str, lang: Lang = Lang.ZH_TW):
@@ -219,7 +215,7 @@ async def search_by_name(name: str, lang: Lang = Lang.ZH_TW):
     id_list = []
     next = 0
     while True:
-        (next, dict) = await client.hscan(KEY.MAPPING_NAME_ID, next, name)
+        (next, dict) = await client.hscan(KEY.MAPPING_NAME_ID, next, name, 4000)
 
         if bool(dict):
             for ids in dict.values():
