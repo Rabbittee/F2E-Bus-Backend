@@ -68,15 +68,18 @@ async def add_one(station: StationModel):
 
             pipe.sadd(f"{key}:stops", stop.id)
 
+        mapping = {
+            "id": station.id,
+            "tdx_id": station.tdx_id,
+            "name": station.name,
+            "city": station.city.value
+        }
+        if station.address is not None:
+            mapping["address"] = station.address
+
         (pipe.hset(
             key,
-            mapping={
-                "id": station.id,
-                "tdx_id": station.tdx_id,
-                "name": station.name,
-                "address": station.address,
-                "city": station.city.value
-            }
+            mapping=mapping
         ).geoadd(
             KEY.STATION_GEO,
             station.position.lon,
@@ -175,7 +178,7 @@ async def select_by_id(id: str, lang: Lang = Lang.ZH_TW):
             name=dict['name'],
             lang=lang,
             city=dict['city'],
-            address=dict['address'],
+            address=dict.get('address'),
             position=GeoLocation(lon=geo[0][0], lat=geo[0][1]),
             route_ids=route_ids,
             routes=routes,

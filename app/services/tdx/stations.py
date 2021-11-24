@@ -18,7 +18,7 @@ def _transform(item: dict, lang: Lang, city: City) -> StationModel:
         name=item["StationName"][lang.value],
         lang=lang,
         city=city,
-        address=item["StationAddress"],
+        address=item.get("StationAddress"),
         position=GeoLocation(
             lon=item["StationPosition"]["PositionLon"],
             lat=item["StationPosition"]["PositionLat"]
