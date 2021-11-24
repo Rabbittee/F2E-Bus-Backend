@@ -82,6 +82,9 @@ async def query(
     match_items["stations"] = remove_none_from(match_items["stations"])
     match_items["routes"] = remove_none_from(match_items["routes"])
 
+    if len(match_items["stations"]) + len(match_items["routes"]) == 0:
+        raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
+
     if with_bounding_center and len(match_items["stations"]) > 0:
         locations = [station.position for station in match_items["stations"]]
         match_items["bbox"] = find_bounding(locations)
