@@ -19,7 +19,7 @@ class StationModel(BaseModel):
     name: str
     lang: Lang
 
-    address: str
+    address: Optional[str] = None
     position: GeoLocation
     city: City
 
