@@ -10,6 +10,7 @@ class StopModel(BaseModel):
     name: str
     position: GeoLocation
     estimate_time: Optional[int] = None
+    nearby: Optional[bool] = False
 
 
 class StopOfRoute(BaseModel):

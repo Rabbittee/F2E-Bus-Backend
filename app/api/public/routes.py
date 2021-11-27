@@ -1,8 +1,8 @@
-from fastapi import APIRouter
-from typing import Union, Dict, List
+from fastapi import APIRouter, Query
+from typing import Optional, Union, Dict, List
 from app.models.Constant.day import Day
 
-from app.models.Geo.Location import GeoLineString
+from app.models.Geo.Location import GeoLineString, str_to_location
 from app.models import Route, Stop
 from app.models.Trip import Trip
 from app.models.Base import Error
@@ -25,12 +25,20 @@ async def route_info(route_id: str):
 async def stop_of_route(
     route_id: str,
     direction: int,
-    estimate_time: bool = False
+    estimate_time: bool = False,
+    location: Optional[str] = Query(
+        None,
+        regex="^\d{2}.?\d{0,7},\d{3}.?\d{0,7}$"
+    )
 ):
     routes = await Route.select_stop_of_route(route_id, direction, estimate_time)
 
     if routes is None:
         raise Error.CustomException(Error.ErrorType.RESOURCE_NOT_FOUND)
+
+    if location:
+        position = str_to_location(location)
+        Stop.find_nearby_stop(routes[0].stops, position)
 
     return routes[0]
 
