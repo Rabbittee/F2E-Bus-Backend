@@ -21,8 +21,22 @@ def transform(data: str) -> LineString:
                 get_str_within_parentheses(data).split(','))))
 
 
-async def get_route_line_string(city: City, route_name: str) -> List[GeoLineString]:
-    res = await GET(f"/Bus/Shape/City/{city.value}/{route_name}")
+async def get_route_line_string(
+    city: City,
+    route_name:  str,
+    direction: int
+) -> List[GeoLineString]:
+    baseUrl = f"/Bus/Shape/City/{city.value}/{route_name}"
+
+    res = await GET(
+        baseUrl,
+        {
+            "$filter": f"Direction eq {direction}"
+        }
+    )
+
+    if len(res.json()) == 0:
+        res = await GET(baseUrl)
 
     return [
         GeoLineString(
